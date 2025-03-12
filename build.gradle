@@ -1,0 +1,44 @@
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    version = "0.1.0"
+    group = "net.vadamdev.dbk"
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+
+        maven {
+            url 'https://jitpack.io'
+        }
+    }
+
+    dependencies {
+        implementation group: 'ch.qos.logback', name: 'logback-classic', version: "${logback_version}"
+        implementation group: 'me.carleslc.Simple-YAML', name: 'Simple-Yaml', version: "${simple_yaml_version}"
+
+        compileOnly group: 'org.jetbrains', name: 'annotations', version: "${jetbrains_annotation_version}"
+    }
+
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
+
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    compileJava.options.encoding = 'UTF-8'
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId project.group
+                artifactId project.name
+                version project.version
+                from components.java
+            }
+        }
+    }
+}

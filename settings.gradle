@@ -1,0 +1,6 @@
+rootProject.name = 'DiscordBotKit'
+
+include 'framework'
+include 'loader'
+include 'examplebot'
+
