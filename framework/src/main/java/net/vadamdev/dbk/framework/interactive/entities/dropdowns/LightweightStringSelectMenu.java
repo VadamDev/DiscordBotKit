@@ -1,11 +1,9 @@
 package net.vadamdev.dbk.framework.interactive.entities.dropdowns;
 
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.utils.data.DataObject;
 import net.dv8tion.jda.internal.interactions.component.StringSelectMenuImpl;
-import net.vadamdev.dbk.framework.interactive.InteractiveComponents;
 import net.vadamdev.dbk.framework.interactive.api.Invalidatable;
 import net.vadamdev.dbk.framework.interactive.api.components.PermissibleInteractiveComponent;
 import org.jetbrains.annotations.Nullable;

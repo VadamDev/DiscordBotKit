@@ -65,7 +65,7 @@ public final class ConsoleCommandManager implements Runnable {
 
     @Override
     public void run() {
-        do {
+        while(running && scanner.hasNext()) {
             final String[] split = scanner.nextLine().split(" ");
 
             final String[] args;
@@ -77,7 +77,7 @@ public final class ConsoleCommandManager implements Runnable {
             final boolean found = dispatchCommand(split[0], args);
             if(!found)
                 sender.reply("Command \"" + split[0] + "\" doesn't exist. Type \"help\" to find a list of available commands!");
-        }while(running && scanner.hasNext());
+        }
     }
 
     private boolean dispatchCommand(String name, String[] args) {

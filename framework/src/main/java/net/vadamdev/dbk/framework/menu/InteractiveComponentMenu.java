@@ -1,0 +1,180 @@
+package net.vadamdev.dbk.framework.menu;
+
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.interactions.components.ActionComponent;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.ItemComponent;
+import net.dv8tion.jda.api.interactions.components.LayoutComponent;
+import net.dv8tion.jda.internal.utils.Checks;
+import net.vadamdev.dbk.framework.interactive.InteractiveComponents;
+import net.vadamdev.dbk.framework.interactive.api.registry.MessageRegistry;
+import net.vadamdev.dbk.framework.utils.CachedMessage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+/**
+ * @author VadamDev
+ * @since 17/03/2025
+ */
+public class InteractiveComponentMenu extends AbstractMenu {
+    private final List<LayoutComponent> layoutComponents;
+    private final List<MessageRegistry<?>> componentsToRegister;
+
+    private final Consumer<Message> invalidateAction;
+
+    private Collection<MessageEmbed> embeds;
+    private CachedMessage message;
+
+    public InteractiveComponentMenu(long timeout, @Nullable TimeUnit unit, Collection<MessageEmbed> embeds, List<LayoutComponent> layoutComponents,
+                                    List<MessageRegistry<?>> componentsToRegister, @Nullable Consumer<Message> invalidateAction) {
+        super(timeout, unit);
+
+        this.embeds = embeds;
+        this.layoutComponents = layoutComponents;
+        this.componentsToRegister = componentsToRegister;
+        this.invalidateAction = invalidateAction;
+    }
+
+    @Override
+    public void display(MessageChannel channel) {
+        channel.sendMessageEmbeds(embeds).setComponents(layoutComponents).queue(this::init);
+    }
+
+    @Override
+    public void display(Message message) {
+        InteractiveComponents.findComponentManager(message.getJDA())
+                .ifPresent(manager -> manager.invalidateMessageAttachedComponents(message.getIdLong()));
+
+        message.editMessageEmbeds(embeds).setReplace(true).setComponents(layoutComponents).queue(this::init);
+    }
+
+    @Override
+    public void display(IReplyCallback callback, boolean ephemeral) {
+        callback.replyEmbeds(embeds).setEphemeral(ephemeral).setComponents(layoutComponents).queue(hook -> hook.retrieveOriginal().queue(this::init));
+    }
+
+    protected void init(Message message) {
+        this.jda = message.getJDA();
+        this.message = new CachedMessage(message);
+
+        componentsToRegister.forEach(registry -> registry.register(message));
+        componentsToRegister.clear();
+    }
+
+    public void editEmbeds(MessageEmbed... embeds) {
+        message.runIfExists(message -> {
+            message.editMessageEmbeds(embeds).queue();
+            this.embeds = Arrays.asList(embeds);
+        });
+    }
+
+    public CachedMessage getMessage() {
+        return message;
+    }
+
+    @Override
+    public void invalidate(JDA jda) {
+        super.invalidate(jda);
+
+        InteractiveComponents.findComponentManager(jda).ifPresent(manager -> manager.invalidateMessageAttachedComponents(message.messageId()));
+
+        if(invalidateAction != null)
+            message.runIfExists(invalidateAction);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder extends AbstractMenu.Builder<InteractiveComponentMenu, Builder> {
+        private final List<MessageEmbed> embeds;
+        private final List<LayoutComponent> layoutComponents;
+        private final List<MessageRegistry<?>> componentsToRegister;
+
+        private Consumer<Message> invalidateAction;
+
+        private Builder() {
+            this.embeds = new ArrayList<>();
+            this.layoutComponents = new ArrayList<>();
+            this.componentsToRegister = new ArrayList<>();
+
+            this.invalidateAction = DISABLE_COMPONENTS_ON_INVALIDATE;
+        }
+
+        public Builder addActionRow(ActionRow row) {
+            layoutComponents.add(row);
+            return this;
+        }
+
+        public Builder addActionRow(ActionComponent... components) {
+            return addActionRow(ActionRow.of(components));
+        }
+
+        public Builder addActionRow(MessageRegistry<? extends ActionComponent>... components) {
+            final ActionComponent[] newComponents = new ActionComponent[components.length];
+            for(int i = 0; i < components.length; i++) {
+                final MessageRegistry<? extends ActionComponent> registry = components[i];
+
+                newComponents[i] = registry.get();
+                componentsToRegister.add(registry);
+            }
+
+            return addActionRow(newComponents);
+        }
+
+        public Builder addEmbed(@NotNull MessageEmbed embed, MessageEmbed... moreEmbeds) {
+            embeds.add(embed);
+
+            if(moreEmbeds.length > 0)
+                embeds.addAll(List.of(moreEmbeds));
+
+            return this;
+        }
+
+        public Builder onInvalidate(Consumer<Message> action) {
+            if(invalidateAction != null)
+                invalidateAction = invalidateAction.andThen(action);
+            else
+                invalidateAction = action;
+
+            return this;
+        }
+
+        @Override
+        public InteractiveComponentMenu build() {
+            Checks.check(!embeds.isEmpty(), "There must be a least one embed in the menu!");
+            Checks.check(embeds.size() <= 5, "There's a maximum of 5 embeds per message");
+            Checks.check(!layoutComponents.isEmpty(), "There must be at least one layout component in the menu");
+
+            return new InteractiveComponentMenu(timeout, unit, embeds, layoutComponents, componentsToRegister, invalidateAction);
+        }
+    }
+
+    public static final Consumer<Message> DISABLE_COMPONENTS_ON_INVALIDATE = message -> {
+        final List<ActionRow> newRows = new ArrayList<>();
+        for(ActionRow actionRow : message.getActionRows()) {
+            final List<ItemComponent> newComponents = new ArrayList<>();
+
+            for(ItemComponent component : actionRow.getComponents()) {
+                if(!(component instanceof ActionComponent actionComponent) || actionComponent.isDisabled())
+                    newComponents.add(component);
+                else
+                    newComponents.add(actionComponent.asDisabled());
+            }
+
+            newRows.add(ActionRow.of(newComponents));
+        }
+
+        message.editMessageComponents(newRows).queue();
+    };
+
+    public static final Consumer<Message> DELETE_MESSAGE_ON_INVALIDATE = message -> message.delete().queue();
+}

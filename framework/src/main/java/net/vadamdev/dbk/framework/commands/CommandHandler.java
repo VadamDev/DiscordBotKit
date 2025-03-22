@@ -76,7 +76,7 @@ public final class CommandHandler implements EventListener {
                     try {
                         commandExecutor.executeUnsafely(event);
                     }catch (ClassCastException e) {
-                        DBKFramework.get().getLogger().error("An error occurred while executing /" + event.getName() + " : " + e.getMessage());
+                        DBKFramework.getLogger().error("An error occurred while executing /" + event.getName() + " : " + e.getMessage());
                     }
                 });
     }

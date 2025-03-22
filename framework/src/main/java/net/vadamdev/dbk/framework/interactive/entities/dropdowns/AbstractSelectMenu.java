@@ -5,8 +5,8 @@ import net.dv8tion.jda.api.events.interaction.component.GenericSelectMenuInterac
 import net.dv8tion.jda.api.interactions.components.selections.SelectMenu;
 import net.dv8tion.jda.internal.utils.Checks;
 import net.vadamdev.dbk.framework.interactive.api.Invalidatable;
-import net.vadamdev.dbk.framework.interactive.entities.PermissiblePersistentComponent;
 import net.vadamdev.dbk.framework.interactive.api.registry.MessageRegistry;
+import net.vadamdev.dbk.framework.interactive.entities.PermissiblePersistentComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumMap;

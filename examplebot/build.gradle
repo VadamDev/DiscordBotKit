@@ -3,12 +3,14 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '8.0.0'
 }
 
-application.mainClass = "net.vadamdev.examplebot.Main"
-group = 'net.vadamdev.examplebot'
-version = '0.1.0'
+java {
+    withSourcesJar()
+}
+
+application.mainClass = "net.vadamdev.examplebot.ExampleBot"
 
 dependencies {
-    implementation project(":framework")
+    implementation group: 'ch.qos.logback', name: 'logback-classic', version: "${logback_version}"
 
-    implementation group: 'net.dv8tion', name: 'JDA', version: "${jda_version}"
+    implementation project(":framework")
 }

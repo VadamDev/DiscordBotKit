@@ -12,7 +12,7 @@ import net.vadamdev.dbk.framework.application.console.sender.Sender;
 public final class StopCommand extends ConsoleCommand {
     public StopCommand() {
         super(DBKConstants.STOP_COMMAND);
-        setDescription("Stop all processes and exit the app");
+        setDescription("Stop all process and exit the app");
     }
 
     @Override

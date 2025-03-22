@@ -11,7 +11,7 @@ import net.vadamdev.dbk.framework.DBKFramework;
 public final class ConsoleSender implements Sender {
     @Override
     public void reply(String str) {
-        DBKFramework.get().getLogger().info(str);
+        DBKFramework.getLogger().info(str);
     }
 
     private static final String NAME = "Console";

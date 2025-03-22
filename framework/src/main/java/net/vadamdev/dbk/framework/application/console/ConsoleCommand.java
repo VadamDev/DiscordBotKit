@@ -20,7 +20,7 @@ public abstract class ConsoleCommand {
 
     private String description;
 
-    public ConsoleCommand(String name) {
+    protected ConsoleCommand(String name) {
         this.name = name;
         this.aliases = new String[0];
 

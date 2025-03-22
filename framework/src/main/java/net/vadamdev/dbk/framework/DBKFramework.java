@@ -18,6 +18,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author VadamDev
@@ -34,8 +36,12 @@ public final class DBKFramework {
         INSTANCE.internalStop();
     }
 
-    public static DBKFramework get() {
-        return INSTANCE;
+    public static ScheduledExecutorService getScheduledExecutorMonoThread() {
+        return INSTANCE.monoScheduledExecutor;
+    }
+
+    public static Logger getLogger() {
+        return INSTANCE.getInternalLogger();
     }
 
     private static final Logger FALLBACK_LOGGER = LoggerFactory.getLogger(DBKFramework.class);
@@ -46,6 +52,8 @@ public final class DBKFramework {
     private final ConsoleCommandManager consoleManager;
     private List<JDABot> bots;
 
+    private ScheduledExecutorService monoScheduledExecutor;
+
     private DBKFramework() {
         this.launched = false;
 
@@ -54,6 +62,8 @@ public final class DBKFramework {
     }
 
     private void internalLaunch(Class<?> mainClass, @Nullable Logger log) {
+        Thread.currentThread().setName("Main");
+
         logger = log != null ? log : FALLBACK_LOGGER;
 
         if(launched) {
@@ -62,6 +72,9 @@ public final class DBKFramework {
         }
 
         logger.info(DBKConstants.HEADER);
+
+        //Init executors
+        monoScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
         try {
             loadAppConfiguration(mainClass);
@@ -77,14 +90,14 @@ public final class DBKFramework {
         try {
             bots = findJDABots(mainClass);
         }catch (IllegalAccessException e) {
-            logger.error("An error occurred while collecting JDABots!", e);
+            logger.error("-> An error occurred while collecting JDABots!", e);
             System.exit(-1);
 
             return;
         }
 
         if(!bots.isEmpty())
-            logger.info("Found " + bots.size() + " JDA Bots !");
+            logger.info("-> Found " + bots.size() + " JDA Bots !");
 
         launched = true;
         startBots(bots);
@@ -95,7 +108,7 @@ public final class DBKFramework {
     }
 
     private void internalStop() {
-        final Logger logger = getLogger();
+        final Logger logger = getInternalLogger();
 
         if(!launched) {
             logger.warn("Failed to stop. DBKFramework is not running !");
@@ -106,17 +119,18 @@ public final class DBKFramework {
 
         for(JDABot bot : bots) {
             try {
-                bot.stop(false);
+                bot.shutdown();
             }catch(Exception e) {
                 final String botClassName = bot.getClass().getName();
                 logger.error("An error occurred while stopping " + botClassName + ": ", e);
-
-                bot.stop(true);
-                logger.warn(botClassName + " was stopped by force !");
             }
         }
 
+        //Shutdown executors
+        monoScheduledExecutor.shutdown();
+
         launched = false;
+        System.exit(0);
     }
 
     /*
@@ -128,20 +142,20 @@ public final class DBKFramework {
 
         final Pair<Field, AppConfig> result = findAppConfig(clazz);
         if(result.isEmpty()) {
-            logger.info("No app config where found!");
+            logger.info("-> No app config where found!");
             return;
         }
 
         final Field field = result.getLeft();
         if(!(field.get(null) instanceof Configuration config)) {
-            logger.error("Field " + field.getName() + " must be a instance of net.vadamdev.dbk.framework.config.Configuration");
+            logger.error("-> Field " + field.getName() + " must be a instance of net.vadamdev.dbk.framework.config.Configuration");
             return;
         }
 
         final boolean existedBefore = config.getYamlFile().exists();
         ConfigurationLoader.loadConfiguration(config);
 
-        logger.info("App configuration loaded successfully !");
+        logger.info("-> App configuration loaded successfully !");
 
         final AppConfig appConfig = result.getRight();
         if(!existedBefore && appConfig.shouldExitOnFirstLaunch()) {
@@ -187,22 +201,20 @@ public final class DBKFramework {
         if(started == 0 && failed == 0)
             logger.info("No bots where found !");
         else
-            logger.info("Started " + started + " of " + (started + failed) + " discord bot(s) !");
+            logger.info("-> Started " + started + " of " + (started + failed) + " discord bot(s) !");
     }
 
     private List<JDABot> findJDABots(Class<?> clazz) throws IllegalAccessException {
         final List<JDABot> result = new ArrayList<>();
 
         for(Field field : clazz.getDeclaredFields()) {
-            if(!JDABot.class.isAssignableFrom(field.getType()) || !field.isAnnotationPresent(Bot.class))
-                continue;
-
             if((field.getModifiers() & Modifier.STATIC) == 0)
                 continue;
 
-            if(!field.canAccess(null))
-                field.setAccessible(true);
+            if(!JDABot.class.isAssignableFrom(field.getType()) || !field.isAnnotationPresent(Bot.class))
+                continue;
 
+            field.setAccessible(true);
             result.add((JDABot) field.get(null));
         }
 
@@ -213,7 +225,7 @@ public final class DBKFramework {
        Getters
      */
 
-    public Logger getLogger() {
+    public Logger getInternalLogger() {
         return logger != null ? logger : FALLBACK_LOGGER;
     }
 }

@@ -1,11 +1,11 @@
 package net.vadamdev.examplebot;
 
 import net.dv8tion.jda.api.JDABuilder;
+import net.vadamdev.dbk.framework.DBKFramework;
 import net.vadamdev.dbk.framework.application.JDABot;
-import net.vadamdev.examplebot.commands.ButtonCommand;
-import net.vadamdev.examplebot.commands.ExampleCommand;
-import net.vadamdev.examplebot.commands.ModalCommand;
-import net.vadamdev.examplebot.commands.SelectMenuCommand;
+import net.vadamdev.dbk.framework.application.annotations.AppConfig;
+import net.vadamdev.dbk.framework.application.annotations.Bot;
+import net.vadamdev.examplebot.commands.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ public class ExampleBot extends JDABot {
     private final Logger logger;
 
     public ExampleBot() {
-        super(() -> JDABuilder.createDefault(Main.mainConfig.TOKEN));
+        super(() -> JDABuilder.createLight(MAIN_CONFIG.TOKEN));
 
         this.logger = LoggerFactory.getLogger(ExampleBot.class);
     }
@@ -26,8 +26,10 @@ public class ExampleBot extends JDABot {
     protected void onStart() {
         registerCommands(
                 new ExampleCommand(),
+                new MenuCommand(),
                 new ButtonCommand(),
                 new SelectMenuCommand(),
+                new AnnotatedCommand(),
                 new ModalCommand()
         );
     }
@@ -39,5 +41,23 @@ public class ExampleBot extends JDABot {
 
     public Logger getLogger() {
         return logger;
+    }
+
+    /*
+       Main
+     */
+
+    @AppConfig
+    public static final MainConfig MAIN_CONFIG = new MainConfig();
+
+    @Bot
+    private static final ExampleBot INSTANCE = new ExampleBot();
+
+    public static void main(String[] args) {
+        DBKFramework.launch(ExampleBot.class, INSTANCE.getLogger());
+    }
+
+    public ExampleBot get() {
+        return INSTANCE;
     }
 }

@@ -6,8 +6,6 @@ import net.vadamdev.dbk.framework.interactive.api.components.InteractiveComponen
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Utility class to manage {@link InteractiveComponent}.
@@ -20,8 +18,6 @@ public final class InteractiveComponents {
     private InteractiveComponents() {}
 
     private static final Map<String, InteractiveComponentManager> managers = new HashMap<>();
-
-    static final ScheduledExecutorService MONO_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
 
     public static void registerManager(JDA jda, InteractiveComponentManager componentManager) {
         managers.put(jda.getSelfUser().getId(), componentManager);
@@ -39,11 +35,7 @@ public final class InteractiveComponents {
         findComponentManager(jda).ifPresent(manager -> manager.invalidate(component));
     }
 
-    public static void shutdown() {
-        MONO_EXECUTOR.shutdown();
-    }
-
-    private static Optional<InteractiveComponentManager> findComponentManager(JDA jda) {
+    public static Optional<InteractiveComponentManager> findComponentManager(JDA jda) {
         return Optional.ofNullable(managers.get(jda.getSelfUser().getId()));
     }
 }

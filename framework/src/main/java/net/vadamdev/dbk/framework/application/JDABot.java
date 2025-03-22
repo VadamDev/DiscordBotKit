@@ -3,6 +3,7 @@ package net.vadamdev.dbk.framework.application;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.SelfUser;
+import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import net.vadamdev.dbk.framework.commands.CommandHandler;
 import net.vadamdev.dbk.framework.commands.SlashCommand;
@@ -22,17 +23,18 @@ public abstract class JDABot {
     protected JDA jda;
 
     private CommandHandler commandHandler;
+    protected InteractiveComponentManager interactiveComponentManager;
 
     private String avatarUrl, appName;
 
-    public JDABot(Supplier<JDABuilder> supplier) {
+    protected JDABot(Supplier<JDABuilder> supplier) {
         this.supplier = supplier;
     }
 
-    protected abstract void onStart();
+    protected abstract void onStart() throws Exception;
     protected abstract void onStop();
 
-    public final void start() throws InterruptedException {
+    public void start() throws Exception {
         jda = supplier.get().build();
         supplier = null;
 
@@ -40,7 +42,7 @@ public abstract class JDABot {
 
         commandHandler = new CommandHandler(jda);
 
-        InteractiveComponents.registerManager(jda, new InteractiveComponentManager(jda));
+        InteractiveComponents.registerManager(jda, interactiveComponentManager != null ? interactiveComponentManager : (interactiveComponentManager = new InteractiveComponentManager(jda)));
 
         final SelfUser selfUser = jda.getSelfUser();
         avatarUrl = selfUser.getAvatarUrl();
@@ -49,22 +51,22 @@ public abstract class JDABot {
         onStart();
 
         commandHandler.registerCommandsAndClose();
+
+        jda.listenOnce(ShutdownEvent.class).subscribe(event -> stop());
     }
 
-    public final void stop(boolean force) {
-        InteractiveComponents.unregisterManager(jda);
-        InteractiveComponents.shutdown();
-
+    private void stop() {
         try {
+            InteractiveComponents.unregisterManager(jda);
+
             onStop();
         }catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
-        if(!force)
-            jda.shutdown();
-        else
-            jda.shutdownNow();
+    public final void shutdown() {
+        jda.shutdown();
     }
 
     /**

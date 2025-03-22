@@ -1,8 +1,9 @@
-dependencies {
-    implementation (group: 'net.dv8tion', name: 'JDA', version: "${jda_version}") {
-        exclude module: 'opus-java'
-    }
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
 
+dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.1'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.1'
 }
