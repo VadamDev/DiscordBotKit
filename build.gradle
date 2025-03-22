@@ -1,6 +1,11 @@
 allprojects {
     version = "1.0.0"
     group = "net.vadamdev"
+
+    wrapper {
+        gradleVersion = "8.5"
+        distributionType = Wrapper.DistributionType.ALL
+    }
 }
 
 subprojects {
