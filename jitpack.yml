@@ -1,4 +1,4 @@
 jdk:
   - openjdk21
 gradle:
-  version: 8.5
+  wrapper: true
