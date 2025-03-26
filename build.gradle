@@ -3,6 +3,11 @@ plugins {
     id 'maven-publish'
 }
 
+wrapper {
+    gradleVersion = "8.5"
+    distributionType = Wrapper.DistributionType.ALL
+}
+
 java {
     withSourcesJar()
     withJavadocJar()
@@ -11,7 +16,7 @@ java {
 sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
 compileJava.options.encoding = 'UTF-8'
 
-group = 'net.vadamdev.dbk'
+group = 'com.github.VadamDev'
 version = '1.0.1'
 
 repositories {
@@ -43,9 +48,6 @@ test {
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId project.group
-            artifactId project.name
-            version project.version
             from components.java
         }
     }
