@@ -41,7 +41,8 @@ public class Configuration {
      */
     public void setValue(String name, @Nullable Object value) {
         try {
-            final Field field = getClass().getField(name);
+            final Field field = getClass().getDeclaredField(name);
+            field.setAccessible(true);
 
             final ConfigValue configValue = field.getAnnotation(ConfigValue.class);
             if(configValue == null)
@@ -62,7 +63,10 @@ public class Configuration {
      */
     public boolean hasField(@NotNull String fieldName) {
         try {
-            return getClass().getField(fieldName).isAnnotationPresent(ConfigValue.class);
+            final Field field = getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+
+            return field.isAnnotationPresent(ConfigValue.class);
         }catch (NoSuchFieldException ignored) {}
 
         return false;

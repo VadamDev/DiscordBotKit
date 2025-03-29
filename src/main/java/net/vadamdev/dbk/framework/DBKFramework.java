@@ -98,6 +98,11 @@ public final class DBKFramework {
 
         if(!bots.isEmpty())
             logger.info("-> Found " + bots.size() + " JDA Bots !");
+        else {
+            monoScheduledExecutor.shutdown();
+            System.exit(0);
+            return;
+        }
 
         launched = true;
         startBots(bots);
@@ -147,6 +152,8 @@ public final class DBKFramework {
         }
 
         final Field field = result.getLeft();
+        field.setAccessible(true);
+
         if(!(field.get(null) instanceof Configuration config)) {
             logger.error("-> Field " + field.getName() + " must be a instance of net.vadamdev.dbk.framework.config.Configuration");
             return;
@@ -198,9 +205,10 @@ public final class DBKFramework {
             }
         }
 
-        if(started == 0 && failed == 0)
+        if(started == 0) {
             logger.info("No bots where found !");
-        else
+            DBKFramework.stop();
+        }else
             logger.info("-> Started " + started + " of " + (started + failed) + " discord bot(s) !");
     }
 
