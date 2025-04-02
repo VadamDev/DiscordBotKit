@@ -31,8 +31,12 @@ public abstract class GuildSlashCommand extends SlashCommand {
     public abstract void execute(Member sender, SlashCommandInteractionEvent event);
 
     @Override
-    public final void execute(User sender, SlashCommandInteractionEvent event) {
-        execute(event.getMember(), event);
+    public void execute(User sender, SlashCommandInteractionEvent event) {
+        final Member member = event.getMember();
+        if(member == null || !member.hasPermission(requiredPermissions))
+            return;
+
+        execute(member, event);
     }
 
     @NotNull

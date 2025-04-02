@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.vadamdev.dbk.framework.DBKFramework;
 import net.vadamdev.dbk.framework.interactive.api.Invalidatable;
 import org.jetbrains.annotations.Nullable;
@@ -24,10 +25,10 @@ public abstract class AbstractMenu implements Invalidatable {
             timeoutTask = DBKFramework.getScheduledExecutorMonoThread().schedule(() -> invalidate(jda), timeout, unit);
     }
 
-    public abstract void display(MessageChannel channel);
-    public abstract void display(Message message);
-    public void display(IReplyCallback callback) { display(callback, false); }
-    public abstract void display(IReplyCallback callback, boolean ephemeral);
+    public abstract RestAction<Message> display(MessageChannel channel);
+    public abstract RestAction<Message> display(Message message);
+    public RestAction<Message> display(IReplyCallback callback) { return display(callback, false); }
+    public abstract RestAction<Message> display(IReplyCallback callback, boolean ephemeral);
 
     @Override
     public void invalidate(JDA jda) {

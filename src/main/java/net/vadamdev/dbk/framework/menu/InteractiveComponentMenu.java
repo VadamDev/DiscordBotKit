@@ -4,11 +4,15 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionComponent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
+import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.internal.requests.CompletedRestAction;
+import net.dv8tion.jda.internal.requests.RestActionImpl;
 import net.dv8tion.jda.internal.utils.Checks;
 import net.vadamdev.dbk.framework.interactive.InteractiveComponents;
 import net.vadamdev.dbk.framework.interactive.api.registry.MessageRegistry;
@@ -17,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -26,7 +31,7 @@ import java.util.function.Consumer;
  */
 public class InteractiveComponentMenu extends AbstractMenu {
     private final List<LayoutComponent> layoutComponents;
-    private final List<MessageRegistry<?>> componentsToRegister;
+    private List<MessageRegistry<?>> componentsToRegister;
 
     private final Consumer<Message> invalidateAction;
 
@@ -44,21 +49,25 @@ public class InteractiveComponentMenu extends AbstractMenu {
     }
 
     @Override
-    public void display(MessageChannel channel) {
-        channel.sendMessageEmbeds(embeds).setComponents(layoutComponents).queue(this::init);
+    public RestAction<Message> display(MessageChannel channel) {
+        return channel.sendMessageEmbeds(embeds).setComponents(layoutComponents)
+                .onSuccess(this::init);
     }
 
     @Override
-    public void display(Message message) {
+    public RestAction<Message> display(Message message) {
         InteractiveComponents.findComponentManager(message.getJDA())
                 .ifPresent(manager -> manager.invalidateMessageAttachedComponents(message.getIdLong()));
 
-        message.editMessageEmbeds(embeds).setReplace(true).setComponents(layoutComponents).queue(this::init);
+        return message.editMessageEmbeds(embeds).setReplace(true).setComponents(layoutComponents)
+                .onSuccess(this::init);
     }
 
     @Override
-    public void display(IReplyCallback callback, boolean ephemeral) {
-        callback.replyEmbeds(embeds).setEphemeral(ephemeral).setComponents(layoutComponents).queue(hook -> hook.retrieveOriginal().queue(this::init));
+    public RestAction<Message> display(IReplyCallback callback, boolean ephemeral) {
+        return callback.replyEmbeds(embeds).setEphemeral(ephemeral).setComponents(layoutComponents)
+                .flatMap(InteractionHook::retrieveOriginal)
+                .onSuccess(this::init);
     }
 
     protected void init(Message message) {
@@ -66,17 +75,41 @@ public class InteractiveComponentMenu extends AbstractMenu {
         this.message = new CachedMessage(message);
 
         componentsToRegister.forEach(registry -> registry.register(message));
-        componentsToRegister.clear();
+        componentsToRegister = null;
     }
 
-    public void editEmbeds(MessageEmbed... embeds) {
-        message.runIfExists(message -> {
-            message.editMessageEmbeds(embeds).queue();
-            this.embeds = Arrays.asList(embeds);
-        });
+    public RestAction<Message> edit(@Nullable Consumer<List<LayoutComponent>> components, @Nullable MessageEmbed... embeds) {
+        if(components == null && embeds == null)
+            throw new IllegalArgumentException("At least one of the parameters must be not null!");
+
+        return message.retrieveMessage()
+                .flatMap(msg -> {
+                    if((embeds != null && embeds.length > 0) && components != null) {
+                        components.accept(layoutComponents);
+                        this.embeds = Arrays.asList(embeds);
+
+                        return msg.editMessageEmbeds(embeds).setComponents(layoutComponents);
+                    }else if(embeds != null && embeds.length > 0) {
+                        this.embeds = Arrays.asList(embeds);
+                        return msg.editMessageEmbeds(embeds);
+                    }else if(components != null) {
+                        components.accept(layoutComponents);
+                        return msg.editMessageComponents(layoutComponents);
+                    }
+
+                    return new CompletedRestAction<>(msg.getJDA(), null, new Error());
+                });
     }
 
-    public CachedMessage getMessage() {
+    public RestAction<Message> editEmbeds(MessageEmbed... embeds) {
+        return edit(null, embeds);
+    }
+
+    public RestAction<Message> editComponents(Consumer<List<LayoutComponent>> components) {
+        return edit(components);
+    }
+
+    public CachedMessage getCachedMessage() {
         return message;
     }
 
