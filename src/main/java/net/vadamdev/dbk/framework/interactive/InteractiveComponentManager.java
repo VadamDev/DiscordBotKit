@@ -1,6 +1,7 @@
 package net.vadamdev.dbk.framework.interactive;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
@@ -42,12 +43,12 @@ public class InteractiveComponentManager extends ListenerAdapter {
         components.removeIf(c -> c.equals(component));
     }
 
-    public void invalidateAll(PersistentComponent<?> component) {
-        invalidateMessageAttachedComponents(component.getMessageId());
-    }
-
     public void invalidateMessageAttachedComponents(long messageId) {
         components.removeIf(c -> c instanceof PersistentComponent<?> c1 && c1.getMessageId() == messageId);
+    }
+
+    public void invalidateChannelAttachedComponents(long channelId) {
+        components.removeIf(c -> c instanceof PersistentComponent<?> c1 && c1.getChannelId() == channelId);
     }
 
     private void cleanup() {
@@ -80,5 +81,10 @@ public class InteractiveComponentManager extends ListenerAdapter {
     @Override
     public void onMessageBulkDelete(@NotNull MessageBulkDeleteEvent event) {
         event.getMessageIds().forEach(messageId -> invalidateMessageAttachedComponents(Long.parseLong(messageId)));
+    }
+
+    @Override
+    public void onChannelDelete(@NotNull ChannelDeleteEvent event) {
+        invalidateChannelAttachedComponents(event.getChannel().getIdLong());
     }
 }

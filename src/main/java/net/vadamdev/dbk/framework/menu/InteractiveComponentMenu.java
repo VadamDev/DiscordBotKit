@@ -172,11 +172,15 @@ public class InteractiveComponentMenu extends AbstractMenu {
             return this;
         }
 
-        public Builder onInvalidate(Consumer<Message> action) {
-            if(invalidateAction != null)
-                invalidateAction = invalidateAction.andThen(action);
-            else
-                invalidateAction = action;
+        public Builder onInvalidate(@Nullable Consumer<Message> action) {
+            if(action == null)
+                invalidateAction = null;
+            else {
+                if(invalidateAction != null)
+                    invalidateAction = invalidateAction.andThen(action);
+                else
+                    invalidateAction = action;
+            }
 
             return this;
         }
