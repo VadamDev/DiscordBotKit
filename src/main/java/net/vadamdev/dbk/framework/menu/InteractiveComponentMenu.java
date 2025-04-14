@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.internal.requests.CompletedRestAction;
-import net.dv8tion.jda.internal.requests.RestActionImpl;
 import net.dv8tion.jda.internal.utils.Checks;
 import net.vadamdev.dbk.framework.interactive.InteractiveComponents;
 import net.vadamdev.dbk.framework.interactive.api.registry.MessageRegistry;
@@ -20,8 +19,10 @@ import net.vadamdev.dbk.framework.utils.CachedMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -65,7 +66,10 @@ public class InteractiveComponentMenu extends AbstractMenu {
 
     @Override
     public RestAction<Message> display(IReplyCallback callback, boolean ephemeral) {
-        return callback.replyEmbeds(embeds).setEphemeral(ephemeral).setComponents(layoutComponents)
+        if(ephemeral)
+            throw new UnsupportedOperationException("Ephemeral messages are not supported in InteractiveComponentMenu!");
+
+        return callback.replyEmbeds(embeds).setComponents(layoutComponents)
                 .flatMap(InteractionHook::retrieveOriginal)
                 .onSuccess(this::init);
     }
