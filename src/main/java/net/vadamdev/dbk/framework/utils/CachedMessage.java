@@ -51,7 +51,7 @@ public record CachedMessage(long messageId, long channelId, long authorId, Offse
                 .exceptionally(throwable -> false);
     }
 
-    public void runIfExists(Consumer<Message> action, Runnable onError) {
+    public void runIfExists(Consumer<Message> onSuccess, Runnable onError) {
         final MessageChannel channel = getChannel();
         if(channel == null)
             return;
@@ -65,11 +65,11 @@ public record CachedMessage(long messageId, long channelId, long authorId, Offse
                     if(message == null)
                         return;
 
-                    action.accept(message);
+                    onSuccess.accept(message);
                 });
     }
 
-    public void runIfExists(Consumer<Message> action) {
-        runIfExists(action, () -> {});
+    public void runIfExists(Consumer<Message> onSuccess) {
+        runIfExists(onSuccess, () -> {});
     }
 }
