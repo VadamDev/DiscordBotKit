@@ -50,17 +50,25 @@ public class InteractiveComponentMenu extends AbstractMenu {
     }
 
     @Override
-    public RestAction<Message> display(MessageChannel channel) {
-        return channel.sendMessageEmbeds(embeds).setComponents(layoutComponents)
-                .onSuccess(this::init);
-    }
-
-    @Override
     public RestAction<Message> display(Message message) {
         InteractiveComponents.findComponentManager(message.getJDA())
                 .ifPresent(manager -> manager.invalidateMessageAttachedComponents(message.getIdLong()));
 
         return message.editMessageEmbeds(embeds).setReplace(true).setComponents(layoutComponents)
+                .onSuccess(this::init);
+    }
+
+    @Override
+    public RestAction<Message> display(MessageChannel channel, @Nullable String messageId) {
+        if(messageId != null) {
+            InteractiveComponents.findComponentManager(channel.getJDA())
+                    .ifPresent(manager -> manager.invalidateMessageAttachedComponents(Long.parseLong(messageId)));
+
+            return channel.editMessageEmbedsById(messageId, embeds).setComponents(layoutComponents)
+                    .onSuccess(this::init);
+        }
+
+        return channel.sendMessageEmbeds(embeds).setComponents(layoutComponents)
                 .onSuccess(this::init);
     }
 
