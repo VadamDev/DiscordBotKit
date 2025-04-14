@@ -16,9 +16,9 @@ import java.util.function.Consumer;
  * @author VadamDev
  * @since 17/03/2025
  */
-public record CachedMessage(long messageId, long channelId, long authorId, String content, OffsetDateTime creationDate, JDA jda) {
+public record CachedMessage(long messageId, long channelId, long authorId, OffsetDateTime creationDate, JDA jda) {
     public CachedMessage(Message message) {
-        this(message.getIdLong(), message.getChannelIdLong(), message.getAuthor().getIdLong(), message.getContentRaw(), message.getTimeCreated(), message.getJDA());
+        this(message.getIdLong(), message.getChannelIdLong(), message.getAuthor().getIdLong(), message.getTimeCreated(), message.getJDA());
     }
 
     public RestAction<Message> retrieveMessage() {
@@ -51,18 +51,25 @@ public record CachedMessage(long messageId, long channelId, long authorId, Strin
                 .exceptionally(throwable -> false);
     }
 
-    public void runIfExists(Consumer<Message> action) {
+    public void runIfExists(Consumer<Message> action, Runnable onError) {
         final MessageChannel channel = getChannel();
         if(channel == null)
             return;
 
         channel.retrieveMessageById(messageId).submit()
-                .exceptionally(throwable -> null)
+                .exceptionally(throwable -> {
+                    onError.run();
+                    return null;
+                })
                 .thenAccept(message -> {
                     if(message == null)
                         return;
 
                     action.accept(message);
                 });
+    }
+
+    public void runIfExists(Consumer<Message> action) {
+        runIfExists(action, () -> {});
     }
 }
