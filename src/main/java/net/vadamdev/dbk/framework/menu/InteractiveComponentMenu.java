@@ -39,7 +39,7 @@ public class InteractiveComponentMenu extends AbstractMenu {
     private Collection<MessageEmbed> embeds;
     private CachedMessage message;
 
-    public InteractiveComponentMenu(long timeout, @Nullable TimeUnit unit, Collection<MessageEmbed> embeds, List<LayoutComponent> layoutComponents,
+    protected InteractiveComponentMenu(long timeout, @Nullable TimeUnit unit, Collection<MessageEmbed> embeds, List<LayoutComponent> layoutComponents,
                                     List<MessageRegistry<?>> componentsToRegister, @Nullable Consumer<Message> invalidateAction) {
         super(timeout, unit);
 
@@ -139,14 +139,26 @@ public class InteractiveComponentMenu extends AbstractMenu {
         return new Builder();
     }
 
-    public static final class Builder extends AbstractMenu.Builder<InteractiveComponentMenu, Builder> {
-        private final List<MessageEmbed> embeds;
-        private final List<LayoutComponent> layoutComponents;
-        private final List<MessageRegistry<?>> componentsToRegister;
-
-        private Consumer<Message> invalidateAction;
-
+    public static final class Builder extends BuilderBase<InteractiveComponentMenu, Builder> {
         private Builder() {
+            super();
+        }
+
+        @Override
+        public InteractiveComponentMenu build() {
+            checkValid();
+            return new InteractiveComponentMenu(timeout, unit, embeds, layoutComponents, componentsToRegister, invalidateAction);
+        }
+    }
+
+    public abstract static class BuilderBase<T extends InteractiveComponentMenu, B extends BuilderBase<T, B>> extends AbstractMenu.Builder<T, B> {
+        protected final List<MessageEmbed> embeds;
+        protected final List<LayoutComponent> layoutComponents;
+        protected final List<MessageRegistry<?>> componentsToRegister;
+
+        protected Consumer<Message> invalidateAction;
+
+        protected BuilderBase() {
             this.embeds = new ArrayList<>();
             this.layoutComponents = new ArrayList<>();
             this.componentsToRegister = new ArrayList<>();
@@ -154,16 +166,16 @@ public class InteractiveComponentMenu extends AbstractMenu {
             this.invalidateAction = DISABLE_COMPONENTS_ON_INVALIDATE;
         }
 
-        public Builder addActionRow(ActionRow row) {
+        public B addActionRow(ActionRow row) {
             layoutComponents.add(row);
-            return this;
+            return (B) this;
         }
 
-        public Builder addActionRow(ActionComponent... components) {
+        public B addActionRow(ActionComponent... components) {
             return addActionRow(ActionRow.of(components));
         }
 
-        public Builder addActionRow(MessageRegistry<? extends ActionComponent>... components) {
+        public B addActionRow(MessageRegistry<? extends ActionComponent>... components) {
             final ActionComponent[] newComponents = new ActionComponent[components.length];
             for(int i = 0; i < components.length; i++) {
                 final MessageRegistry<? extends ActionComponent> registry = components[i];
@@ -175,16 +187,16 @@ public class InteractiveComponentMenu extends AbstractMenu {
             return addActionRow(newComponents);
         }
 
-        public Builder addEmbed(@NotNull MessageEmbed embed, MessageEmbed... moreEmbeds) {
+        public B addEmbed(@NotNull MessageEmbed embed, MessageEmbed... moreEmbeds) {
             embeds.add(embed);
 
             if(moreEmbeds.length > 0)
                 embeds.addAll(List.of(moreEmbeds));
 
-            return this;
+            return (B) this;
         }
 
-        public Builder onInvalidate(@Nullable Consumer<Message> action) {
+        public B onInvalidate(@Nullable Consumer<Message> action) {
             if(action == null)
                 invalidateAction = null;
             else {
@@ -194,16 +206,13 @@ public class InteractiveComponentMenu extends AbstractMenu {
                     invalidateAction = action;
             }
 
-            return this;
+            return (B) this;
         }
 
-        @Override
-        public InteractiveComponentMenu build() {
+        protected void checkValid() {
             Checks.check(!embeds.isEmpty(), "There must be a least one embed in the menu!");
             Checks.check(embeds.size() <= 5, "There's a maximum of 5 embeds per message");
             Checks.check(!layoutComponents.isEmpty(), "There must be at least one layout component in the menu");
-
-            return new InteractiveComponentMenu(timeout, unit, embeds, layoutComponents, componentsToRegister, invalidateAction);
         }
     }
 
