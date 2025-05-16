@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.components.ActionComponent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.ItemComponent;
 import net.dv8tion.jda.api.interactions.components.LayoutComponent;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.internal.requests.CompletedRestAction;
@@ -31,12 +30,12 @@ import java.util.function.Consumer;
  * @since 17/03/2025
  */
 public class InteractiveComponentMenu extends AbstractMenu {
-    private final List<LayoutComponent> layoutComponents;
+    protected final List<LayoutComponent> layoutComponents;
     private List<MessageRegistry<?>> componentsToRegister;
 
     private final Consumer<Message> invalidateAction;
 
-    private Collection<MessageEmbed> embeds;
+    protected Collection<MessageEmbed> embeds;
     private CachedMessage message;
 
     protected InteractiveComponentMenu(long timeout, @Nullable TimeUnit unit, Collection<MessageEmbed> embeds, List<LayoutComponent> layoutComponents,
@@ -82,8 +81,21 @@ public class InteractiveComponentMenu extends AbstractMenu {
                 .onSuccess(this::init);
     }
 
+    @Override
+    public RestAction<Message> display(InteractionHook hook, boolean edit) {
+        if(edit)
+            return hook.editOriginalEmbeds(embeds).setComponents(layoutComponents).setReplace(true)
+                    .onSuccess(this::init);
+        else
+            return hook.sendMessageEmbeds(embeds).setComponents(layoutComponents)
+                    .onSuccess(this::init);
+    }
+
     protected void init(Message message) {
-        this.jda = message.getJDA();
+        if(message.isEphemeral())
+            throw new UnsupportedOperationException("Ephemeral messages are not supported in InteractiveComponentMenu!");
+
+        jda = message.getJDA();
         this.message = new CachedMessage(message);
 
         componentsToRegister.forEach(registry -> registry.register(message));
@@ -140,9 +152,7 @@ public class InteractiveComponentMenu extends AbstractMenu {
     }
 
     public static final class Builder extends BuilderBase<InteractiveComponentMenu, Builder> {
-        private Builder() {
-            super();
-        }
+        private Builder() {}
 
         @Override
         public InteractiveComponentMenu build() {
@@ -163,7 +173,7 @@ public class InteractiveComponentMenu extends AbstractMenu {
             this.layoutComponents = new ArrayList<>();
             this.componentsToRegister = new ArrayList<>();
 
-            this.invalidateAction = DISABLE_COMPONENTS_ON_INVALIDATE;
+            this.invalidateAction = InvalidateActions.DISABLE_COMPONENTS_ON_INVALIDATE;
         }
 
         public B addActionRow(ActionRow row) {
@@ -215,24 +225,4 @@ public class InteractiveComponentMenu extends AbstractMenu {
             Checks.check(!layoutComponents.isEmpty(), "There must be at least one layout component in the menu");
         }
     }
-
-    public static final Consumer<Message> DISABLE_COMPONENTS_ON_INVALIDATE = message -> {
-        final List<ActionRow> newRows = new ArrayList<>();
-        for(ActionRow actionRow : message.getActionRows()) {
-            final List<ItemComponent> newComponents = new ArrayList<>();
-
-            for(ItemComponent component : actionRow.getComponents()) {
-                if(!(component instanceof ActionComponent actionComponent) || actionComponent.isDisabled())
-                    newComponents.add(component);
-                else
-                    newComponents.add(actionComponent.asDisabled());
-            }
-
-            newRows.add(ActionRow.of(newComponents));
-        }
-
-        message.editMessageComponents(newRows).queue();
-    };
-
-    public static final Consumer<Message> DELETE_MESSAGE_ON_INVALIDATE = message -> message.delete().queue();
 }
