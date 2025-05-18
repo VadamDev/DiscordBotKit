@@ -140,11 +140,14 @@ public class InteractiveComponentMenu extends AbstractMenu {
     @Override
     public void invalidate(JDA jda) {
         super.invalidate(jda);
-
-        InteractiveComponents.findComponentManager(jda).ifPresent(manager -> manager.invalidateMessageAttachedComponents(message.messageId()));
+        invalidateComponents(jda);
 
         if(invalidateAction != null)
             message.runIfExists(invalidateAction);
+    }
+
+    public void invalidateComponents(JDA jda) {
+        InteractiveComponents.findComponentManager(jda).ifPresent(manager -> manager.invalidateMessageAttachedComponents(message.messageId()));
     }
 
     public static Builder builder() {

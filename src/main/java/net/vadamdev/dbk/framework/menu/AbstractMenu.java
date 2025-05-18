@@ -36,10 +36,19 @@ public abstract class AbstractMenu implements Invalidatable {
     public abstract RestAction<Message> display(InteractionHook hook, boolean edit);
     public RestAction<Message> display(InteractionHook hook) { return display(hook, false); }
 
+    public void cancelTimeout() {
+        if(timeoutTask == null)
+            return;
+
+        if(!timeoutTask.isCancelled() && !timeoutTask.isDone())
+            timeoutTask.cancel(false);
+
+        timeoutTask = null;
+    }
+
     @Override
     public void invalidate(JDA jda) {
-        if(timeoutTask != null && !timeoutTask.isCancelled())
-            timeoutTask.cancel(false);
+        cancelTimeout();
     }
 
     public abstract static class Builder<T extends AbstractMenu, B extends Builder<T, B>> {
