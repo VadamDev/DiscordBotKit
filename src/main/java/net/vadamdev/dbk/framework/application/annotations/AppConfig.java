@@ -3,8 +3,8 @@ package net.vadamdev.dbk.framework.application.annotations;
 import java.lang.annotation.*;
 
 /**
- * Notify DBKFramework that this field is a configuration file for the whole application. It will be loaded before discord bots.
- * <br> The field needs to be static and instanced before DBKFramework launches
+ * Notify DBK that this field is a {@link net.vadamdev.dbk.framework.config.Configuration Configuration} file for the application. It will be loaded before discord bots.
+ * <br> The field needs to be STATIC and INSTANCED before starting DBK
  *
  * @author VadamDev
  * @since 07/10/2024

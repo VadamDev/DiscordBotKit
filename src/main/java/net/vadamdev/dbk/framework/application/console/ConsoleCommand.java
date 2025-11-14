@@ -15,13 +15,13 @@ import java.util.function.BiConsumer;
  * @since 27/10/2024
  */
 public abstract class ConsoleCommand {
-    private final String name;
+    private final String label;
     private String[] aliases;
 
     private String description;
 
-    protected ConsoleCommand(String name) {
-        this.name = name;
+    protected ConsoleCommand(String label) {
+        this.label = label;
         this.aliases = new String[0];
 
         this.description = null;
@@ -42,19 +42,26 @@ public abstract class ConsoleCommand {
      * @param label The label to test
      * @return {@code true} if the label matches the command's name or any of its aliases, {@code false} otherwise
      */
-    final boolean test(String label) {
+    protected final boolean match(String label) {
         for(String alias : aliases) {
-            if(label.equals(alias))
-                return true;
+            if(!label.equals(alias))
+                continue;
+
+            return true;
         }
 
-        return label.equals(name);
+        return label.equals(this.label);
     }
 
-    public String getName() {
-        return name;
+    /*
+       Getters & Setters
+     */
+
+    public String getLabel() {
+        return label;
     }
 
+    @Nullable
     public String getDescription() {
         return description;
     }
@@ -71,35 +78,31 @@ public abstract class ConsoleCommand {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ConsoleCommand that)) return false;
-        return Objects.equals(name, that.name) && Objects.deepEquals(aliases, that.aliases) && Objects.equals(description, that.description);
+        return Objects.equals(label, that.label) && Objects.deepEquals(aliases, that.aliases) && Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, Arrays.hashCode(aliases), description);
+        return Objects.hash(label, Arrays.hashCode(aliases), description);
     }
 
     /*
        Fluent Pattern console commands
      */
 
-    public static ConsoleCommand of(String name, String description, BiConsumer<Sender, String[]> action) {
-        return new Impl(name, description, action);
+    public static ConsoleCommand of(String label, @Nullable String description, BiConsumer<Sender, String[]> action) {
+        return new Impl(label, description, action);
     }
 
-    public static ConsoleCommand of(String name, BiConsumer<Sender, String[]> action) {
-        return of(name, null, action);
+    public static ConsoleCommand of(String label, BiConsumer<Sender, String[]> action) {
+        return of(label, null, action);
     }
-
-    /*
-       Fluent pattern implementation of ConsoleCommand
-     */
 
     private static final class Impl extends ConsoleCommand {
         private final BiConsumer<Sender, String[]> action;
 
-        private Impl(String name, String description, BiConsumer<Sender, String[]> action) {
-            super(name);
+        private Impl(String label, @Nullable String description, BiConsumer<Sender, String[]> action) {
+            super(label);
             setDescription(description);
 
             this.action = action;

@@ -18,17 +18,17 @@ import java.util.Objects;
  * @since 30/10/2024
  */
 public abstract class SlashCommand extends CommandExecutor<SlashCommandInteractionEvent> {
-    protected final String name, description;
+    protected final String label, description;
 
-    public SlashCommand(String name, String description) {
+    public SlashCommand(String label, String description) {
         super(SlashCommandInteractionEvent.class);
 
-        this.name = name;
+        this.label = label;
         this.description = description;
     }
 
-    public SlashCommand(String name) {
-        this(name, "No description where provided");
+    public SlashCommand(String label) {
+        this(label, "No description where provided");
     }
 
     public abstract void execute(User sender, SlashCommandInteractionEvent event);
@@ -41,24 +41,24 @@ public abstract class SlashCommand extends CommandExecutor<SlashCommandInteracti
     @NotNull
     @Override
     public SlashCommandData createCommandData() {
-        return Commands.slash(name, description)
+        return Commands.slash(label, description)
                 .setContexts(InteractionContextType.BOT_DM);
     }
 
     @Override
-    public boolean isValidFor(String label) {
-        return name.equals(label);
+    public boolean match(String label) {
+        return this.label.equals(label);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof SlashCommand that)) return false;
-        return Objects.equals(name, that.name) && Objects.equals(description, that.description);
+        return Objects.equals(label, that.label) && Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description);
+        return Objects.hash(label, description);
     }
 }

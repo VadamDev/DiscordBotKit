@@ -1,6 +1,7 @@
 package net.vadamdev.dbk.framework.application.console.sender;
 
-import net.vadamdev.dbk.framework.DBKFramework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default implementation of {@link Sender} which reply to the DBKFramework logger
@@ -9,15 +10,15 @@ import net.vadamdev.dbk.framework.DBKFramework;
  * @since 27/10/2024
  */
 public final class ConsoleSender implements Sender {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleSender.class);
+
     @Override
     public void reply(String str) {
-        DBKFramework.getLogger().info(str);
+        LOGGER.info(str);
     }
 
-    private static final String NAME = "Console";
-
     @Override
-    public String getName() {
-        return NAME;
+    public String name() {
+        return "Console";
     }
 }

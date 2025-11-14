@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.vadamdev.dbk.framework.DBKFramework;
+import net.vadamdev.dbk.framework.DBKApplication;
 import net.vadamdev.dbk.framework.interactive.api.components.Expirable;
 import net.vadamdev.dbk.framework.interactive.api.components.InteractiveComponent;
 import net.vadamdev.dbk.framework.interactive.api.components.PersistentComponent;
@@ -27,12 +27,12 @@ public class InteractiveComponentManager extends ListenerAdapter {
 
     private final List<InteractiveComponent<?>> components;
 
-    public InteractiveComponentManager(JDA jda) {
+    public InteractiveComponentManager(JDA jda, DBKApplication application) {
         this.components = new ArrayList<>();
 
         jda.addEventListener(this);
 
-        DBKFramework.getScheduledExecutorMonoThread().scheduleAtFixedRate(this::cleanup, 1, 1, TimeUnit.HOURS);
+        application.getScheduledExecutorMonoThread().scheduleAtFixedRate(this::cleanup, 1, 1, TimeUnit.HOURS);
     }
 
     public void register(InteractiveComponent<?> component) {

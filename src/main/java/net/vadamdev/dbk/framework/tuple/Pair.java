@@ -5,10 +5,10 @@ package net.vadamdev.dbk.framework.tuple;
  * @since 11/10/2024
  */
 public interface Pair<L, R> {
-    L getLeft();
-    R getRight();
+    L left();
+    R right();
 
     default boolean isEmpty() {
-        return getLeft() == null && getRight() == null;
+        return left() == null && right() == null;
     }
 }

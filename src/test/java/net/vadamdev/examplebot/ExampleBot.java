@@ -1,7 +1,7 @@
 package net.vadamdev.examplebot;
 
 import net.dv8tion.jda.api.JDABuilder;
-import net.vadamdev.dbk.framework.DBKFramework;
+import net.vadamdev.dbk.framework.DBKApplication;
 import net.vadamdev.dbk.framework.application.JDABot;
 import net.vadamdev.dbk.framework.application.annotations.AppConfig;
 import net.vadamdev.dbk.framework.application.annotations.Bot;
@@ -54,7 +54,7 @@ public class ExampleBot extends JDABot {
     private static final ExampleBot INSTANCE = new ExampleBot();
 
     public static void main(String[] args) {
-        DBKFramework.launch(ExampleBot.class, INSTANCE.getLogger());
+        DBKApplication.run(ExampleBot.class, INSTANCE.getLogger());
     }
 
     public ExampleBot get() {

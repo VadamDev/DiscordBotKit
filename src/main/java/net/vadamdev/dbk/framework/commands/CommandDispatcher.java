@@ -1,14 +1,14 @@
 package net.vadamdev.dbk.framework.commands;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.command.GenericCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.EventListener;
-import net.vadamdev.dbk.framework.DBKFramework;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.vadamdev.dbk.framework.commands.api.AutoCompleter;
 import net.vadamdev.dbk.framework.commands.api.CommandExecutor;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +18,15 @@ import java.util.Optional;
  * @author VadamDev
  * @since 30/10/2024
  */
-public final class CommandHandler implements EventListener {
-    private final JDA jda;
+public class CommandDispatcher extends ListenerAdapter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandDispatcher.class);
+
+    protected final JDA jda;
 
     private final List<CommandData> commands;
     private boolean closed;
 
-    public CommandHandler(JDA jda) {
+    public CommandDispatcher(JDA jda) {
         this.jda = jda;
 
         this.commands = new ArrayList<>();
@@ -37,11 +39,15 @@ public final class CommandHandler implements EventListener {
         if(closed)
             throw new IllegalStateException("Cannot register commands when CommandHandler is closed !");
 
-        AutoCompleter completer = null;
-        if(executor instanceof AutoCompleter autoCompleter)
-            completer = autoCompleter;
+        commands.add(new CommandData(executor, executor instanceof AutoCompleter autoCompleter ? autoCompleter : null));
+    }
 
-        commands.add(new CommandData(executor, completer));
+    public void registerCommands(CommandExecutor<?>... executors) {
+        if(closed)
+            throw new IllegalStateException("Cannot register commands when CommandHandler is closed !");
+
+        for(CommandExecutor<?> executor : executors)
+            registerCommand(executor);
     }
 
     public void registerCommandsAndClose() {
@@ -49,7 +55,7 @@ public final class CommandHandler implements EventListener {
             throw new IllegalStateException("Cannot register commands when CommandHandler is closed !");
 
         jda.updateCommands().addCommands(
-                commands.stream().map(CommandData::toJDACommandData).toList()
+                commands.stream().map(CommandData::createCommandData).toList()
         ).queue();
 
         closed = true;
@@ -60,31 +66,32 @@ public final class CommandHandler implements EventListener {
      */
 
     @Override
-    public void onEvent(GenericEvent event) {
-        switch(event) {
-            case GenericCommandInteractionEvent commandEvent -> handleSlashInteraction(commandEvent);
-            case CommandAutoCompleteInteractionEvent autocompleteEvent -> handleAutoComplete(autocompleteEvent);
-            default -> {}
-        }
-    }
-
-    private void handleSlashInteraction(GenericCommandInteractionEvent event) {
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         commands.stream()
                 .map(CommandData::executor)
-                .filter(commandExecutor -> commandExecutor.isValidFor(event.getName()))
-                .findFirst().ifPresent(commandExecutor -> {
+                .filter(executor -> executor.match(event.getName()))
+                .findFirst().ifPresent(executor -> {
                     try {
-                        commandExecutor.executeUnsafely(event);
+                        executor.executeUnsafely(event);
                     }catch (ClassCastException e) {
-                        DBKFramework.getLogger().error("An error occurred while executing /" + event.getName() + " : " + e.getMessage());
+                        LOGGER.error("An error occurred while executing /" + event.getName() + " :", e);
                     }
                 });
     }
 
-    private void handleAutoComplete(CommandAutoCompleteInteractionEvent event) {
+    @Override
+    public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
         commands.stream()
-                .filter(commandData -> commandData.executor().isValidFor(event.getName()))
+                .filter(commandData -> commandData.executor().match(event.getName()))
                 .findFirst().flatMap(CommandData::completer).ifPresent(completer -> completer.autoComplete(event));
+    }
+
+    /*
+       Getters
+     */
+
+    public boolean isClosed() {
+        return closed;
     }
 
     /*
@@ -96,7 +103,7 @@ public final class CommandHandler implements EventListener {
             this(executor, Optional.ofNullable(completer));
         }
 
-        private net.dv8tion.jda.api.interactions.commands.build.CommandData toJDACommandData() {
+        private net.dv8tion.jda.api.interactions.commands.build.CommandData createCommandData() {
             return executor.createCommandData();
         }
     }

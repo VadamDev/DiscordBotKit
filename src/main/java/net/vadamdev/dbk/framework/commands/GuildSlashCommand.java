@@ -9,6 +9,9 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * Represents a SlashCommand meant to be used only in Guilds
  *
@@ -34,7 +37,7 @@ public abstract class GuildSlashCommand extends SlashCommand {
     public void execute(User sender, SlashCommandInteractionEvent event) {
         final Member member = event.getMember();
         if(member == null || !member.hasPermission(requiredPermissions))
-            return;
+            return; //Should never happen
 
         execute(member, event);
     }
@@ -44,20 +47,36 @@ public abstract class GuildSlashCommand extends SlashCommand {
     public SlashCommandData createCommandData() {
         return super.createCommandData()
                 .setContexts(InteractionContextType.GUILD)
-                .setDefaultPermissions(processPermissions());
+                .setDefaultPermissions(computeDefaultPermissions());
     }
 
-    private DefaultMemberPermissions processPermissions() {
-        if(requiredPermissions.length == 0)
-            return DefaultMemberPermissions.ENABLED;
-
-        if(requiredPermissions.length == 1 && requiredPermissions[0].equals(Permission.ADMINISTRATOR))
-            return DefaultMemberPermissions.DISABLED;
-
-        return DefaultMemberPermissions.enabledFor(requiredPermissions);
+    protected DefaultMemberPermissions computeDefaultPermissions() {
+        return switch(requiredPermissions.length) {
+            case 0 -> DefaultMemberPermissions.ENABLED;
+            case 1 -> {
+                if(requiredPermissions[0].equals(Permission.ADMINISTRATOR))
+                    yield DefaultMemberPermissions.DISABLED;
+                else
+                    yield DefaultMemberPermissions.enabledFor(requiredPermissions);
+            }
+            default -> DefaultMemberPermissions.enabledFor(requiredPermissions);
+        };
     }
 
     public void setRequiredPermissions(Permission... requiredPermissions) {
         this.requiredPermissions = requiredPermissions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        GuildSlashCommand that = (GuildSlashCommand) o;
+        return Objects.deepEquals(requiredPermissions, that.requiredPermissions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), Arrays.hashCode(requiredPermissions));
     }
 }

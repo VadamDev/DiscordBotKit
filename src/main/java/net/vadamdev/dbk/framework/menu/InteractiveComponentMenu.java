@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -38,9 +39,9 @@ public class InteractiveComponentMenu extends AbstractMenu {
     protected Collection<MessageEmbed> embeds;
     private CachedMessage message;
 
-    protected InteractiveComponentMenu(long timeout, @Nullable TimeUnit unit, Collection<MessageEmbed> embeds, List<LayoutComponent> layoutComponents,
-                                    List<MessageRegistry<?>> componentsToRegister, @Nullable Consumer<Message> invalidateAction) {
-        super(timeout, unit);
+    protected InteractiveComponentMenu(long timeout, @Nullable TimeUnit unit, @Nullable ScheduledExecutorService scheduler, Collection<MessageEmbed> embeds,
+                                       List<LayoutComponent> layoutComponents, List<MessageRegistry<?>> componentsToRegister, @Nullable Consumer<Message> invalidateAction) {
+        super(timeout, unit, scheduler);
 
         this.embeds = embeds;
         this.layoutComponents = layoutComponents;
@@ -160,7 +161,7 @@ public class InteractiveComponentMenu extends AbstractMenu {
         @Override
         public InteractiveComponentMenu build() {
             checkValid();
-            return new InteractiveComponentMenu(timeout, unit, embeds, layoutComponents, componentsToRegister, invalidateAction);
+            return new InteractiveComponentMenu(timeout, unit, scheduler, embeds, layoutComponents, componentsToRegister, invalidateAction);
         }
     }
 

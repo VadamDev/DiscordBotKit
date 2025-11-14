@@ -21,5 +21,5 @@ public interface Sender {
      *
      * @return The name of the sender as a String
      */
-    String getName();
+    String name();
 }

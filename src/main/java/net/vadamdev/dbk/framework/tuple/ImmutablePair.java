@@ -6,7 +6,7 @@ import java.util.Map;
  * @author VadamDev
  * @since 11/10/2024
  */
-public record ImmutablePair<L, R>(L getLeft, R getRight) implements Pair<L, R> {
+public record ImmutablePair<L, R>(L left, R right) implements Pair<L, R> {
     private static final Pair<?, ?> EMPTY = ImmutablePair.of(null, null);
     public static <L, R> ImmutablePair<L, R> empty() {
         return (ImmutablePair<L, R>) EMPTY;

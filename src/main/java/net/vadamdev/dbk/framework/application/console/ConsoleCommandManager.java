@@ -1,10 +1,12 @@
 package net.vadamdev.dbk.framework.application.console;
 
+import net.vadamdev.dbk.framework.DBKApplication;
 import net.vadamdev.dbk.framework.application.console.defaults.HelpCommand;
 import net.vadamdev.dbk.framework.application.console.defaults.StopCommand;
 import net.vadamdev.dbk.framework.application.console.sender.ConsoleSender;
 import net.vadamdev.dbk.framework.application.console.sender.Sender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.InputStream;
 import java.util.*;
@@ -15,14 +17,15 @@ import java.util.*;
  * @author VadamDev
  * @since 27/10/2024
  */
-public final class ConsoleCommandManager implements Runnable {
-    private final Sender sender;
-    private final Scanner scanner;
+public class ConsoleCommandManager implements Runnable {
+    protected final Sender sender;
+    protected final Scanner scanner;
 
-    private final Thread thread;
-    private boolean running;
+    protected final Thread thread;
+    protected volatile boolean running;
 
-    private final List<ConsoleCommand> commands;
+    protected final List<ConsoleCommand> commands;
+    private boolean addedDefaultCommands;
 
     public ConsoleCommandManager(Sender sender, InputStream in) {
         this.sender = sender;
@@ -32,36 +35,35 @@ public final class ConsoleCommandManager implements Runnable {
         this.running = false;
 
         this.commands = new ArrayList<>();
+        this.addedDefaultCommands = false;
     }
 
     public ConsoleCommandManager(InputStream in) {
         this(new ConsoleSender(), in);
     }
 
-    public void registerCommand(@NotNull ConsoleCommand command) {
-        commands.add(command);
-    }
-
-    public void registerCommands(@NotNull ConsoleCommand... commands) {
-        for(ConsoleCommand command : commands)
-            registerCommand(command);
-    }
-
-    public List<ConsoleCommand> getCommands() {
-        return Collections.unmodifiableList(commands);
-    }
+    /*
+       Start / Stop
+     */
 
     public void start() {
-        thread.start();
+        if(running)
+            throw new IllegalStateException("Command manager is already running!");
+
         running = true;
+        thread.start();
     }
 
     public void stop() {
-        thread.interrupt();
-        scanner.close();
+        if(!running)
+            throw new IllegalStateException("Command manager is not running!");
 
         running = false;
     }
+
+    /*
+       Loop
+     */
 
     @Override
     public void run() {
@@ -74,15 +76,32 @@ public final class ConsoleCommandManager implements Runnable {
             else
                 args = Arrays.copyOfRange(split, 1, split.length - 1);
 
-            final boolean found = dispatchCommand(split[0], args);
-            if(!found)
-                sender.reply("Command \"" + split[0] + "\" doesn't exist. Type \"help\" to find a list of available commands!");
+            final String label = split[0];
+
+            try {
+                final boolean found = dispatchCommand(label, args);
+
+                if(!found) {
+                    String reply;
+                    if(addedDefaultCommands || commands.stream().anyMatch(HelpCommand.class::isInstance))
+                        reply = "Command \"" + label + "\" doesn't exist. Type \"help\" to find a list of available commands!";
+                    else
+                        reply = "Command \"" + label + "\" doesn't exist.";
+
+                    sender.reply(reply);
+                }
+            }catch (Exception e) {
+                sender.reply("An error occurred while executing the command \"" + label + "\"");
+                e.printStackTrace();
+            }
         }
+
+        scanner.close();
     }
 
     private boolean dispatchCommand(String name, String[] args) {
         for(ConsoleCommand command : commands) {
-            if(!command.test(name))
+            if(!command.match(name))
                 continue;
 
             command.execute(sender, name, args);
@@ -92,13 +111,49 @@ public final class ConsoleCommandManager implements Runnable {
         return false;
     }
 
-    public void addDefaultCommands() {
-        if(commands.stream().anyMatch(cmd -> cmd instanceof HelpCommand || cmd instanceof StopCommand))
+    /*
+        Registry
+     */
+
+    public void registerCommand(@NotNull ConsoleCommand command) {
+        commands.add(command);
+    }
+
+    public void registerCommands(@NotNull ConsoleCommand... commands) {
+        for(ConsoleCommand command : commands)
+            registerCommand(command);
+    }
+
+    public final void addDefaultCommands(DBKApplication application) {
+        if(addedDefaultCommands)
             return;
 
         registerCommands(
                 new HelpCommand(this),
-                new StopCommand()
+                new StopCommand(application)
         );
+
+        addedDefaultCommands = true;
+    }
+
+    /*
+       Getters
+     */
+
+    public Sender getSender() {
+        return sender;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    @Unmodifiable
+    public List<ConsoleCommand> getCommands() {
+        return Collections.unmodifiableList(commands);
+    }
+
+    public boolean hasAddedDefaultCommands() {
+        return addedDefaultCommands;
     }
 }

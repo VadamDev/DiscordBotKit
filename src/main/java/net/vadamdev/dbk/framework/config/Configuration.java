@@ -1,14 +1,12 @@
 package net.vadamdev.dbk.framework.config;
 
 import net.vadamdev.dbk.framework.config.annotations.ConfigValue;
-import net.vadamdev.dbk.framework.config.serializer.ConfigurationSerializer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.vadamdev.dbk.framework.config.loader.ConfigurableField;
+import net.vadamdev.dbk.framework.config.loader.ConfigurationLoader;
 import org.simpleyaml.configuration.file.YamlFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 
 /**
  * Represents a configuration file.
@@ -19,6 +17,7 @@ import java.lang.reflect.Field;
  */
 public class Configuration {
     protected final YamlFile yamlFile;
+    protected ConfigurationLoader loader;
 
     public Configuration(YamlFile yamlFile) {
         this.yamlFile = yamlFile;
@@ -32,52 +31,60 @@ public class Configuration {
         this(new YamlFile(path));
     }
 
-    /**
-     * Change the provided value in the yml object and field.
-     * <br>Use the save() function to save the changes in the yml file.
-     *
-     * @param name Field name
-     * @param value New value
-     */
-    public void setValue(String name, @Nullable Object value) {
-        try {
-            final Field field = getClass().getDeclaredField(name);
-            field.setAccessible(true);
+    public void setLoader(ConfigurationLoader loader) {
+        if(isLoaderSet())
+            throw new IllegalStateException("Loader is already set!");
 
-            final ConfigValue configValue = field.getAnnotation(ConfigValue.class);
-            if(configValue == null)
-                return;
-
-            field.set(this, value);
-            yamlFile.set(configValue.path(), ConfigurationSerializer.serializeField(value, configValue.serializer()));
-        } catch (IllegalAccessException | NoSuchFieldException e) {
-            e.printStackTrace();
-        }
+        this.loader = loader;
     }
 
-    /**
-     * Checks if the provided fieldName exists.
-     *
-     * @param fieldName Field name to check
-     * @return True if the provided field name is a field
-     */
-    public boolean hasField(@NotNull String fieldName) {
-        try {
-            final Field field = getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-
-            return field.isAnnotationPresent(ConfigValue.class);
-        }catch (NoSuchFieldException ignored) {}
-
-        return false;
+    public boolean isLoaderSet() {
+        return loader != null;
     }
 
-    /**
-     * Saves changes in the YAML file.
+    /*
+       Utility Methods
      */
-    public void save() throws IOException {
+
+    public void save(String fieldName, Object value) throws IOException, IllegalAccessException {
+        final ConfigurableField field = loader.getFieldsMap().get(fieldName);
+        if(field == null)
+            throw new IllegalArgumentException("No configurable field with name " + fieldName + " found!");
+
+        field.field().set(this, value);
+        field.save(this, value);
+
         yamlFile.save();
     }
+
+    public void save(String fieldName) throws IOException, IllegalAccessException {
+        final ConfigurableField field = loader.getFieldsMap().get(fieldName);
+        if(field == null)
+            throw new IllegalArgumentException("No configurable field with name " + fieldName + " found!");
+
+        field.save(this);
+        yamlFile.save();
+    }
+
+    public void saveAll() throws IOException, IllegalAccessException {
+        for(ConfigurableField field : loader.getFields())
+            field.save(this);
+
+        yamlFile.save();
+    }
+
+    public void loadFromDisk() throws IOException, IllegalAccessException {
+        yamlFile.createOrLoadWithComments();
+
+        for(ConfigurableField field : loader.getFields())
+            field.retrieve(this);
+
+        yamlFile.save();
+    }
+
+    /*
+        Getters
+     */
 
     public YamlFile getYamlFile() {
         return yamlFile;

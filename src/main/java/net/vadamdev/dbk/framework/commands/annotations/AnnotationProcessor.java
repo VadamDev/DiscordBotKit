@@ -1,5 +1,6 @@
 package net.vadamdev.dbk.framework.commands.annotations;
 
+import net.dv8tion.jda.annotations.ForRemoval;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.vadamdev.dbk.framework.commands.api.CommandExecutor;
 
@@ -10,6 +11,7 @@ import java.lang.reflect.Method;
  * @author VadamDev
  * @since 20/03/2025
  */
+@Deprecated
 public final class AnnotationProcessor {
     private AnnotationProcessor() {}
 

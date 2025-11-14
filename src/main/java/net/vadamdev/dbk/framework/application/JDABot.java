@@ -5,7 +5,8 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.SelfUser;
 import net.dv8tion.jda.api.events.session.ShutdownEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
-import net.vadamdev.dbk.framework.commands.CommandHandler;
+import net.vadamdev.dbk.framework.DBKApplication;
+import net.vadamdev.dbk.framework.commands.CommandDispatcher;
 import net.vadamdev.dbk.framework.commands.SlashCommand;
 import net.vadamdev.dbk.framework.commands.api.CommandExecutor;
 import net.vadamdev.dbk.framework.interactive.InteractiveComponentManager;
@@ -19,30 +20,31 @@ import java.util.function.Supplier;
  * @since 26/10/2024
  */
 public abstract class JDABot {
-    private Supplier<JDABuilder> supplier;
+    private Supplier<JDABuilder> jdaBuilder;
     protected JDA jda;
 
-    private CommandHandler commandHandler;
+    private CommandDispatcher commandDispatcher;
     protected InteractiveComponentManager interactiveComponentManager;
 
     private String avatarUrl, appName;
 
-    protected JDABot(Supplier<JDABuilder> supplier) {
-        this.supplier = supplier;
+    protected JDABot(Supplier<JDABuilder> jdaBuilder) {
+        this.jdaBuilder = jdaBuilder;
     }
 
     protected abstract void onStart() throws Exception;
     protected abstract void onStop();
 
-    public void start() throws Exception {
-        jda = supplier.get().build();
-        supplier = null;
+    public final void start(DBKApplication application) throws Exception {
+        jda = jdaBuilder.get().build();
+        jdaBuilder = null;
 
         jda.awaitReady();
+        jda.listenOnce(ShutdownEvent.class).subscribe(event -> stop());
 
-        commandHandler = new CommandHandler(jda);
+        commandDispatcher = new CommandDispatcher(jda);
 
-        InteractiveComponents.registerManager(jda, interactiveComponentManager != null ? interactiveComponentManager : (interactiveComponentManager = new InteractiveComponentManager(jda)));
+        InteractiveComponents.registerManager(jda, interactiveComponentManager != null ? interactiveComponentManager : (interactiveComponentManager = new InteractiveComponentManager(jda, application)));
 
         final SelfUser selfUser = jda.getSelfUser();
         avatarUrl = selfUser.getAvatarUrl();
@@ -50,15 +52,12 @@ public abstract class JDABot {
 
         onStart();
 
-        commandHandler.registerCommandsAndClose();
-
-        jda.listenOnce(ShutdownEvent.class).subscribe(event -> stop());
+        commandDispatcher.registerCommandsAndClose();
     }
 
     private void stop() {
         try {
             InteractiveComponents.unregisterManager(jda);
-
             onStop();
         }catch (Exception e) {
             e.printStackTrace();
@@ -66,7 +65,8 @@ public abstract class JDABot {
     }
 
     public final void shutdown() {
-        jda.shutdown();
+        if(jda != null)
+            jda.shutdown();
     }
 
     /**
@@ -79,13 +79,21 @@ public abstract class JDABot {
     }
 
     /**
-     * Register a variable amount of {@link SlashCommand}
+     * Register a {@link CommandExecutor}
+     *
+     * @param command The {@link CommandExecutor} to register
+     */
+    protected void registerCommand(@NotNull CommandExecutor<?> command) {
+        commandDispatcher.registerCommand(command);
+    }
+
+    /**
+     * Register a variable amount of {@link CommandExecutor}
      *
      * @param commands The variable number of {@link SlashCommand} to register
      */
     protected void registerCommands(@NotNull CommandExecutor<?>... commands) {
-        for(CommandExecutor<?> executor : commands)
-            commandHandler.registerCommand(executor);
+        commandDispatcher.registerCommands(commands);
     }
 
     /*

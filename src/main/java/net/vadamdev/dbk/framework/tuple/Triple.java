@@ -5,10 +5,10 @@ package net.vadamdev.dbk.framework.tuple;
  * @since 11/10/2024
  */
 public interface Triple<L, M, R> extends Pair<L, R> {
-    M getMiddle();
+    M middle();
 
     @Override
     default boolean isEmpty() {
-        return getMiddle() == null && Pair.super.isEmpty();
+        return middle() == null && Pair.super.isEmpty();
     }
 }

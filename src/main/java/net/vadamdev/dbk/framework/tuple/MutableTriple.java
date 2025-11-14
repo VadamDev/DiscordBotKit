@@ -9,9 +9,9 @@ public final class MutableTriple<L, M, R> implements Triple<L, M, R> {
         return new MutableTriple<>(left, middle, right);
     }
 
-    private L left;
-    private M middle;
-    private R right;
+    public L left;
+    public M middle;
+    public R right;
 
     private MutableTriple(L left, M middle, R right) {
         this.left = left;
@@ -20,17 +20,17 @@ public final class MutableTriple<L, M, R> implements Triple<L, M, R> {
     }
 
     @Override
-    public L getLeft() {
+    public L left() {
         return left;
     }
 
     @Override
-    public M getMiddle() {
+    public M middle() {
         return middle;
     }
 
     @Override
-    public R getRight() {
+    public R right() {
         return right;
     }
 

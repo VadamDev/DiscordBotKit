@@ -34,12 +34,12 @@ public abstract class CommandExecutor<T extends GenericCommandInteractionEvent> 
     }
 
     /**
-     * Defines if the provided command label is the label of the command represented by this class
+     * Defines if the provided label matches the label of this command, aliases logic can be done here too
      *
      * @param label The label of a command
      * @return True, if the provided label matches the label of the command represented by this class
      */
-    public abstract boolean isValidFor(String label);
+    public abstract boolean match(String label);
 
     @NotNull
     public abstract CommandData createCommandData();

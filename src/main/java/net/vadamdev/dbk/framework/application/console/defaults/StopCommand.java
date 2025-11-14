@@ -1,7 +1,6 @@
 package net.vadamdev.dbk.framework.application.console.defaults;
 
-import net.vadamdev.dbk.framework.DBKConstants;
-import net.vadamdev.dbk.framework.DBKFramework;
+import net.vadamdev.dbk.framework.DBKApplication;
 import net.vadamdev.dbk.framework.application.console.ConsoleCommand;
 import net.vadamdev.dbk.framework.application.console.sender.Sender;
 
@@ -9,15 +8,19 @@ import net.vadamdev.dbk.framework.application.console.sender.Sender;
  * @author VadamDev
  * @since 30/10/2024
  */
-public final class StopCommand extends ConsoleCommand {
-    public StopCommand() {
-        super(DBKConstants.STOP_COMMAND);
+public class StopCommand extends ConsoleCommand {
+    private final DBKApplication application;
+
+    public StopCommand(DBKApplication application) {
+        super("stop");
         setDescription("Stop all process and exit the app");
+
+        this.application = application;
     }
 
     @Override
     public void execute(Sender sender, String label, String[] args) {
         sender.reply("Stopping...");
-        DBKFramework.stop();
+        application.stop();
     }
 }

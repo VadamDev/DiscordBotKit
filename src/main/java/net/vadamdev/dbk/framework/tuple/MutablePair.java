@@ -15,8 +15,8 @@ public final class MutablePair<L, R> implements Pair<L, R> {
         return new MutablePair<>(entry.getKey(), entry.getValue());
     }
 
-    private L left;
-    private R right;
+    public L left;
+    public R right;
 
     private MutablePair(L left, R right) {
         this.left = left;
@@ -24,12 +24,12 @@ public final class MutablePair<L, R> implements Pair<L, R> {
     }
 
     @Override
-    public L getLeft() {
+    public L left() {
         return left;
     }
 
     @Override
-    public R getRight() {
+    public R right() {
         return right;
     }
 

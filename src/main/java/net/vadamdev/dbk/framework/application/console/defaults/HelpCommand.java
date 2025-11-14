@@ -8,8 +8,8 @@ import net.vadamdev.dbk.framework.application.console.sender.Sender;
  * @author VadamDev
  * @since 30/10/2024
  */
-public final class HelpCommand extends ConsoleCommand {
-    private final ConsoleCommandManager consoleManager;
+public class HelpCommand extends ConsoleCommand {
+    protected final ConsoleCommandManager consoleManager;
 
     public HelpCommand(ConsoleCommandManager consoleManager) {
         super("help");
@@ -25,9 +25,9 @@ public final class HelpCommand extends ConsoleCommand {
         for(ConsoleCommand command : consoleManager.getCommands()) {
             final String description = command.getDescription();
             if(description == null)
-                output.append("- \"" + command.getName() + "\"");
+                output.append("- \"" + command.getLabel() + "\"");
             else
-                output.append("- \"" + command.getName() + "\" : " + description);
+                output.append("- \"" + command.getLabel() + "\" : " + description);
 
             output.append("\n");
         }
