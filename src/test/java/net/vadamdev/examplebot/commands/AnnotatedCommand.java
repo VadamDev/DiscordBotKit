@@ -7,8 +7,8 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.vadamdev.dbk.commands.GuildSlashCommand;
-import net.vadamdev.dbk.commands.annotations.AnnotationProcessor;
-import net.vadamdev.dbk.commands.annotations.CommandProcessor;
+import net.vadamdev.dbk.commands.annotations.AnnotatedCommandDispatcher;
+import net.vadamdev.dbk.commands.annotations.SubCommand;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,23 +16,22 @@ import org.jetbrains.annotations.NotNull;
  * @since 20/03/2025
  */
 public class AnnotatedCommand extends GuildSlashCommand {
+    private final AnnotatedCommandDispatcher dispatcher;
+
     public AnnotatedCommand() {
         super("annotated");
         setRequiredPermissions(Permission.MESSAGE_MANAGE);
+
+        this.dispatcher = new AnnotatedCommandDispatcher(this);
     }
 
-    @Override
-    public void execute(Member sender, SlashCommandInteractionEvent event) {
-        AnnotationProcessor.processAnnotations(event, this);
-    }
-
-    @CommandProcessor(subCommand = "one")
-    @CommandProcessor.Permissions(requiredPermissions = { Permission.ADMINISTRATOR })
+    @SubCommand(name = "one")
+    @SubCommand.Permission(requiredPermissions = { Permission.ADMINISTRATOR })
     public void one(SlashCommandInteractionEvent event) {
         event.reply("Hello from another command processor !").queue();
     }
 
-    @CommandProcessor(subCommand = "one", group = "group")
+    @SubCommand(group = "group", name = "one")
     public void oneButInAGroup(SlashCommandInteractionEvent event) {
         event.reply("Hello from a command processor !").queue();
     }
@@ -50,5 +49,10 @@ public class AnnotatedCommand extends GuildSlashCommand {
                 .addSubcommands(
                         new SubcommandData("one", "Nop")
                 );
+    }
+
+    @Override
+    public void execute(Member sender, SlashCommandInteractionEvent event) {
+        dispatcher.onCommand(event);
     }
 }
