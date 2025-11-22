@@ -6,9 +6,9 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
-import net.vadamdev.dbk.framework.commands.GuildSlashCommand;
-import net.vadamdev.dbk.framework.commands.annotations.AnnotationProcessor;
-import net.vadamdev.dbk.framework.commands.annotations.CommandProcessor;
+import net.vadamdev.dbk.commands.GuildSlashCommand;
+import net.vadamdev.dbk.commands.annotations.AnnotationProcessor;
+import net.vadamdev.dbk.commands.annotations.CommandProcessor;
 import org.jetbrains.annotations.NotNull;
 
 /**

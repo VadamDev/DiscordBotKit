@@ -1,7 +1,7 @@
 package net.vadamdev.examplebot;
 
-import net.vadamdev.dbk.framework.config.Configuration;
-import net.vadamdev.dbk.framework.config.annotations.ConfigValue;
+import net.vadamdev.dbk.config.Configuration;
+import net.vadamdev.dbk.config.annotations.ConfigValue;
 
 /**
  * @author VadamDev

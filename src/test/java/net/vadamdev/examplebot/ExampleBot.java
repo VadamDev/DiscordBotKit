@@ -1,10 +1,10 @@
 package net.vadamdev.examplebot;
 
 import net.dv8tion.jda.api.JDABuilder;
-import net.vadamdev.dbk.framework.DBKApplication;
-import net.vadamdev.dbk.framework.application.JDABot;
-import net.vadamdev.dbk.framework.application.annotations.AppConfig;
-import net.vadamdev.dbk.framework.application.annotations.Bot;
+import net.vadamdev.dbk.DBKApplication;
+import net.vadamdev.dbk.application.JDABot;
+import net.vadamdev.dbk.application.annotations.AppConfig;
+import net.vadamdev.dbk.application.annotations.Bot;
 import net.vadamdev.examplebot.commands.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

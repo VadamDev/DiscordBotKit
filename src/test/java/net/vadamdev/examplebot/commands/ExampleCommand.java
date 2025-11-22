@@ -8,8 +8,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
-import net.vadamdev.dbk.framework.commands.GuildSlashCommand;
-import net.vadamdev.dbk.framework.commands.api.AutoCompleter;
+import net.vadamdev.dbk.commands.GuildSlashCommand;
+import net.vadamdev.dbk.commands.api.AutoCompleter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

@@ -4,9 +4,9 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.vadamdev.dbk.framework.commands.GuildSlashCommand;
-import net.vadamdev.dbk.framework.interactive.entities.SmartActionRow;
-import net.vadamdev.dbk.framework.interactive.entities.buttons.InteractiveButton;
+import net.vadamdev.dbk.commands.GuildSlashCommand;
+import net.vadamdev.dbk.interactive.entities.SmartActionRow;
+import net.vadamdev.dbk.interactive.entities.buttons.InteractiveButton;
 
 /**
  * @author VadamDev

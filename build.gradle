@@ -30,7 +30,10 @@ repositories {
 
 dependencies {
     //Main
-    implementation(group: 'net.dv8tion', name: 'JDA', version: "${jda_version}") { exclude module: 'opus-java' }
+    implementation(group: 'net.dv8tion', name: 'JDA', version: "${jda_version}") {
+        exclude module: 'opus-java'
+        exclude module: 'tink'
+    }
     implementation group: 'me.carleslc.Simple-YAML', name: 'Simple-Yaml', version: "${simple_yaml_version}"
 
     compileOnly group: 'org.jetbrains', name: 'annotations', version: "${jetbrains_annotation_version}"
