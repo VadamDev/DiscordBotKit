@@ -19,7 +19,7 @@ java {
 compileJava.options.encoding = 'UTF-8'
 
 group = 'com.github.VadamDev'
-version = '1.1.0'
+version = '1.1.1'
 
 repositories {
     mavenCentral()

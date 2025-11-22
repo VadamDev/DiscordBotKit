@@ -23,14 +23,11 @@ import java.util.concurrent.ScheduledExecutorService;
  * @since 05/11/2025
  */
 public final class DBKApplication {
-    public static DBKApplication run(Class<?> mainClass, @Nullable Logger logger) {
+    public static DBKApplication of(Class<?> mainClass, @Nullable Logger logger) {
         if(logger == null)
             logger = LoggerFactory.getLogger(DBKApplication.class);
 
-        final DBKApplication application = new DBKApplication(mainClass, logger);
-        application.start();
-
-        return application;
+        return new DBKApplication(mainClass, logger);
     }
 
     private final Class<?> mainClass;
