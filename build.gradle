@@ -31,19 +31,19 @@ repositories {
 
 dependencies {
     //Main
-    implementation(group: 'net.dv8tion', name: 'JDA', version: "${jda_version}") {
+    implementation("net.dv8tion:JDA:${jda_version}") {
         exclude module: 'opus-java'
         exclude module: 'tink'
     }
-    implementation group: 'me.carleslc.Simple-YAML', name: 'Simple-Yaml', version: "${simple_yaml_version}"
+    implementation "me.carleslc.Simple-YAML:Simple-Yaml:${simple_yaml_version}"
 
-    compileOnly group: 'org.jetbrains', name: 'annotations', version: "${jetbrains_annotation_version}"
+    compileOnly "org.jetbrains:annotations:${jetbrains_annotation_version}"
 
     //Test
-    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: "${logback_version}"
+    testImplementation "ch.qos.logback:logback-classic:${logback_version}"
 
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.1'
-    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.1'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.1"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.1"
 }
 
 test {
