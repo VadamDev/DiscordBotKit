@@ -6,6 +6,7 @@ import net.vadamdev.dbk.application.annotations.Bot;
 import net.vadamdev.dbk.application.console.ConsoleCommandManager;
 import net.vadamdev.dbk.config.Configuration;
 import net.vadamdev.dbk.config.loader.ConfigurationLoader;
+import net.vadamdev.dbk.utils.Callable;
 import org.jetbrains.annotations.Nullable;
 import org.simpleyaml.configuration.file.YamlFile;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ public final class DBKApplication {
     private final ConsoleCommandManager consoleManager;
 
     private boolean launched;
+    @Nullable private Callable onShutdown;
 
     private DBKApplication(Class<?> mainClass, Logger logger) {
         this.mainClass = mainClass;
@@ -97,6 +99,9 @@ public final class DBKApplication {
             consoleManager.stop();
 
         shutdownBots();
+
+        if(onShutdown != null)
+            onShutdown.run();
 
         launched = false;
         System.exit(0);
@@ -202,6 +207,17 @@ public final class DBKApplication {
                 logger.error("An error occurred while stopping " + botClassName + ":", e);
             }
         }
+    }
+
+    /*
+       Setters
+     */
+    
+    public void onShutdown(Callable action) {
+        if(onShutdown == null)
+            onShutdown = action;
+        else
+            onShutdown = onShutdown.andThen(action);
     }
 
     /*
