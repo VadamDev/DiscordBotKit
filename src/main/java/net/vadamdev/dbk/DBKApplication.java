@@ -15,19 +15,20 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author VadamDev
  * @since 05/11/2025
  */
 public final class DBKApplication {
-    public static DBKApplication of(Class<?> mainClass, @Nullable Logger logger) {
+    public static DBKApplication run(Class<?> mainClass, @Nullable Logger logger) {
         if(logger == null)
             logger = LoggerFactory.getLogger(DBKApplication.class);
 
-        return new DBKApplication(mainClass, logger);
+        final DBKApplication application = new DBKApplication(mainClass, logger);
+        application.start();
+
+        return application;
     }
 
     private final Class<?> mainClass;
@@ -35,8 +36,6 @@ public final class DBKApplication {
 
     private List<JDABot> bots;
     private final ConsoleCommandManager consoleManager;
-
-    private ScheduledExecutorService scheduledExecutorMonoThread;
 
     private boolean launched;
 
@@ -77,17 +76,12 @@ public final class DBKApplication {
             }
         }
 
-        //Executor
-        scheduledExecutorMonoThread = Executors.newSingleThreadScheduledExecutor();
-
         //Start Bots
         launched = true;
 
         final boolean success = startBots();
-        if(!success) {
-            scheduledExecutorMonoThread.shutdown();
+        if(!success)
             System.exit(0);
-        }
 
         //Console Command
         consoleManager.start();
@@ -103,8 +97,6 @@ public final class DBKApplication {
             consoleManager.stop();
 
         shutdownBots();
-
-        scheduledExecutorMonoThread.shutdown();
 
         launched = false;
         System.exit(0);
@@ -226,9 +218,5 @@ public final class DBKApplication {
 
     public boolean isLaunched() {
         return launched;
-    }
-
-    public ScheduledExecutorService getScheduledExecutorMonoThread() {
-        return scheduledExecutorMonoThread;
     }
 }

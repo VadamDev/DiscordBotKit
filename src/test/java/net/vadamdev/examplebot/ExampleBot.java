@@ -54,7 +54,7 @@ public class ExampleBot extends JDABot {
     private static final ExampleBot INSTANCE = new ExampleBot();
 
     public static void main(String[] args) {
-        DBKApplication.of(ExampleBot.class, INSTANCE.getLogger());
+        DBKApplication.run(ExampleBot.class, INSTANCE.getLogger());
     }
 
     public ExampleBot get() {
