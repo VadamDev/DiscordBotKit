@@ -16,6 +16,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author VadamDev
@@ -37,6 +39,8 @@ public final class DBKApplication {
 
     private List<JDABot> bots;
     private final ConsoleCommandManager consoleManager;
+
+    private ScheduledExecutorService scheduledExecutorService;
 
     private boolean launched;
     @Nullable private Callable onShutdown;
@@ -78,12 +82,17 @@ public final class DBKApplication {
             }
         }
 
+        //Executor
+        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
         //Start Bots
         launched = true;
 
         final boolean success = startBots();
-        if(!success)
+        if(!success) {
             System.exit(0);
+            scheduledExecutorService.shutdown();
+        }
 
         //Console Command
         consoleManager.start();
@@ -102,6 +111,8 @@ public final class DBKApplication {
 
         if(onShutdown != null)
             onShutdown.run();
+
+        scheduledExecutorService.shutdown();
 
         launched = false;
         System.exit(0);
@@ -234,5 +245,9 @@ public final class DBKApplication {
 
     public boolean isLaunched() {
         return launched;
+    }
+
+    public ScheduledExecutorService getScheduledExecutorMonoThread() {
+        return scheduledExecutorService;
     }
 }
