@@ -2,7 +2,6 @@ package net.vadamdev.dbk.commands.annotations;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
-import net.vadamdev.dbk.commands.CommandDispatcher;
 import net.vadamdev.dbk.commands.api.CommandExecutor;
 import org.jetbrains.annotations.Nullable;
 

@@ -212,7 +212,7 @@ public final class DBKApplication {
     /*
        Setters
      */
-    
+
     public void onShutdown(Callable action) {
         if(onShutdown == null)
             onShutdown = action;

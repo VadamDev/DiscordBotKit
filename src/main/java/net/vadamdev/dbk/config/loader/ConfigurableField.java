@@ -4,7 +4,6 @@ import net.vadamdev.dbk.config.Configuration;
 import net.vadamdev.dbk.config.annotations.ConfigRange;
 import net.vadamdev.dbk.config.annotations.ConfigValue;
 import net.vadamdev.dbk.config.serializer.SerializerAccessor;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.simpleyaml.configuration.file.YamlFile;
 
