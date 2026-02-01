@@ -27,7 +27,7 @@ public class SerializerAccessor {
             return null;
 
         if(serializer == null)
-            return input.toString();
+            return input;
 
         return serializer.serializeObj(input);
     }
