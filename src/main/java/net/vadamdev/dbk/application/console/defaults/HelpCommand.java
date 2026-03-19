@@ -23,11 +23,13 @@ public class HelpCommand extends ConsoleCommand {
         final StringBuilder output = new StringBuilder("\nList of currently available commands:\n");
 
         for(ConsoleCommand command : consoleManager.getCommands()) {
+            final String lab = command.getLabel();
             final String description = command.getDescription();
+
             if(description == null)
-                output.append("- \"" + command.getLabel() + "\"");
+                output.append("- \"" + lab + "\"");
             else
-                output.append("- \"" + command.getLabel() + "\" : " + description);
+                output.append("- \"" + lab + "\" : " + description);
 
             output.append("\n");
         }
