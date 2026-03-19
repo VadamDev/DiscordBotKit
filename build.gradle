@@ -36,7 +36,7 @@ dependencies {
         exclude module: 'opus-java'
         exclude module: 'tink'
     }
-    implementation "me.carleslc.Simple-YAML:Simple-Yaml:${simple_yaml_version}"
+    implementation "com.github.Carleslc:Simple-YAML:${simple_yaml_version}"
 
     compileOnly "org.jetbrains:annotations:${jetbrains_annotation_version}"
 
