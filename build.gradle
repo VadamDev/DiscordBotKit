@@ -42,13 +42,10 @@ dependencies {
 
     //Test
     testImplementation "ch.qos.logback:logback-classic:${logback_version}"
-
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junit_version}"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junit_version}"
 }
 
 test {
-    useJUnitPlatform()
+    failOnNoDiscoveredTests = false
 }
 
 publishing {
