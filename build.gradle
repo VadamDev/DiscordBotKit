@@ -1,16 +1,16 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'com.gradleup.shadow' version '9.2.2'
+    id 'com.gradleup.shadow' version '9.4.1'
 }
 
 wrapper {
-    gradleVersion = "9.2.1"
+    gradleVersion = "9.4.1"
     distributionType = Wrapper.DistributionType.ALL
 }
 
 java {
-    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_25
 
     withSourcesJar()
     withJavadocJar()
@@ -19,7 +19,7 @@ java {
 compileJava.options.encoding = 'UTF-8'
 
 group = 'com.github.VadamDev'
-version = '1.2.0'
+version = '1.2.1'
 
 repositories {
     mavenCentral()
