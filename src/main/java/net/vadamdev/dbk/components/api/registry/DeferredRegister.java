@@ -1,4 +1,4 @@
-package net.vadamdev.dbk.interactive.api.registry;
+package net.vadamdev.dbk.components.api.registry;
 
 /**
  * Represents an entity that will be registered in a service later in time.

@@ -1,15 +1,14 @@
 package net.vadamdev.examplebot.commands;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.selections.EntitySelectMenu;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.selections.EntitySelectMenu;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
 import net.vadamdev.dbk.commands.GuildSlashCommand;
-import net.vadamdev.dbk.interactive.api.components.InteractiveComponent;
-import net.vadamdev.dbk.interactive.entities.SmartActionRow;
-import net.vadamdev.dbk.interactive.entities.dropdowns.InteractiveEntitySelectMenu;
-import net.vadamdev.dbk.interactive.entities.dropdowns.InteractiveStringSelectMenu;
+import net.vadamdev.dbk.components.entities.SmartComponentDrawer;
+import net.vadamdev.dbk.components.entities.dropdowns.SmartEntitySelectMenu;
+import net.vadamdev.dbk.components.entities.dropdowns.SmartStringSelectMenu;
 
 /**
  * @author VadamDev
@@ -23,25 +22,23 @@ public class SelectMenuCommand extends GuildSlashCommand {
 
     @Override
     public void execute(Member sender, SlashCommandInteractionEvent event) {
-        final var firstMenu = InteractiveStringSelectMenu.of(StringSelectMenu.create(InteractiveComponent.generateComponentUID())
-                        .addOption("First Option", "first")
-                        .addOption("Second Option", "second")
-                        .build())
+        final var firstMenu = SmartStringSelectMenu.builder()
+                .addOption("First Option", "first")
+                .addOption("Second Option", "second")
                 .action((e, invalidatable) -> {
                     e.reply("Select Option " + e.getSelectedOptions().get(0).getValue()).setEphemeral(true).queue();
                 }).build();
 
-        final var secondMenu = InteractiveEntitySelectMenu.of(EntitySelectMenu.create(InteractiveComponent.generateComponentUID(), EntitySelectMenu.SelectTarget.USER)
-                        .build())
+        final var secondMenu = SmartEntitySelectMenu.builder(EntitySelectMenu.SelectTarget.USER)
                 .action((e, invalidatable) -> {
                     e.reply("Select Option " + e.getMentions().getMembers().get(0).getAsMention()).setEphemeral(true).queue();
                 }).build();
 
-        final SmartActionRow group = new SmartActionRow().offer(firstMenu, secondMenu);
+        final SmartComponentDrawer drawer = new SmartComponentDrawer();
 
         event.reply("Here's some select menus:").setComponents(
-                group.getAsActionRow(0),
-                group.getAsActionRow(1)
-        ).queue(group::registerAllAndClear);
+                ActionRow.of(drawer.push(firstMenu)),
+                ActionRow.of(drawer.push(secondMenu))
+        ).queue(drawer::registerAllAndClear);
     }
 }

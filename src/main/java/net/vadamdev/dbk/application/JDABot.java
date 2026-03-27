@@ -9,8 +9,8 @@ import net.vadamdev.dbk.DBKApplication;
 import net.vadamdev.dbk.commands.CommandDispatcher;
 import net.vadamdev.dbk.commands.SlashCommand;
 import net.vadamdev.dbk.commands.api.CommandExecutor;
-import net.vadamdev.dbk.interactive.InteractiveComponentManager;
-import net.vadamdev.dbk.interactive.InteractiveComponents;
+import net.vadamdev.dbk.components.SmartComponents;
+import net.vadamdev.dbk.components.SmartComponentsManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -24,7 +24,7 @@ public abstract class JDABot {
     protected JDA jda;
 
     private CommandDispatcher commandDispatcher;
-    protected InteractiveComponentManager interactiveComponentManager;
+    protected SmartComponentsManager interactiveComponentManager;
 
     private String avatarUrl, appName;
 
@@ -44,7 +44,7 @@ public abstract class JDABot {
 
         commandDispatcher = new CommandDispatcher(jda);
 
-        InteractiveComponents.registerManager(jda, interactiveComponentManager != null ? interactiveComponentManager : (interactiveComponentManager = new InteractiveComponentManager(jda, application)));
+        SmartComponents.registerManager(jda, interactiveComponentManager != null ? interactiveComponentManager : (interactiveComponentManager = new SmartComponentsManager(jda, application)));
 
         final SelfUser selfUser = jda.getSelfUser();
         avatarUrl = selfUser.getAvatarUrl();
@@ -57,7 +57,7 @@ public abstract class JDABot {
 
     private void stop() {
         try {
-            InteractiveComponents.unregisterManager(jda);
+            SmartComponents.unregisterManager(jda);
             onStop();
         }catch (Exception e) {
             e.printStackTrace();

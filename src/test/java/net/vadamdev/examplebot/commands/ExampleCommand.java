@@ -29,8 +29,9 @@ public class ExampleCommand extends GuildSlashCommand implements AutoCompleter {
         event.reply(event.getOption("input", OptionMapping::getAsString) + " are cool!").queue();
     }
 
+    @NotNull
     @Override
-    public @NotNull SlashCommandData createCommandData() {
+    public SlashCommandData createCommandData() {
         return super.createCommandData().addOptions(
                 new OptionData(OptionType.STRING, "input", "An input", true, true)
         );

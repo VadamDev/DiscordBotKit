@@ -1,17 +1,16 @@
-package net.vadamdev.dbk.interactive.api.components;
+package net.vadamdev.dbk.components.api;
 
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.GenericInteractionCreateEvent;
-import net.vadamdev.dbk.interactive.InteractiveComponents;
-import net.vadamdev.dbk.interactive.api.Invalidatable;
+import net.vadamdev.dbk.components.SmartComponents;
 
 import java.util.UUID;
 
 /**
  * @author VadamDev
- * @since 08/11/2024
+ * @since 20/03/2026
  */
-public interface InteractiveComponent<T extends GenericInteractionCreateEvent> extends Invalidatable {
+public interface SmartComponent<T extends GenericInteractionCreateEvent> extends Invalidatable {
     void execute(T event);
     boolean isValidFor(T event);
 
@@ -21,7 +20,7 @@ public interface InteractiveComponent<T extends GenericInteractionCreateEvent> e
 
     @Override
     default void invalidate(JDA jda) {
-        InteractiveComponents.invalidateComponent(jda, this);
+        SmartComponents.invalidateComponent(jda, this);
     }
 
     default boolean executeUnsafely(GenericInteractionCreateEvent event) {
@@ -35,7 +34,7 @@ public interface InteractiveComponent<T extends GenericInteractionCreateEvent> e
 
         try {
             execute(typedEvent);
-        }catch(Exception e) {
+        }catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -45,7 +44,7 @@ public interface InteractiveComponent<T extends GenericInteractionCreateEvent> e
         return true;
     }
 
-    static String generateComponentUID() {
-        return UUID.randomUUID().toString().replace("-", "");
+    static String newComponentUID() {
+        return UUID.randomUUID().toString().replace('-', ' ');
     }
 }

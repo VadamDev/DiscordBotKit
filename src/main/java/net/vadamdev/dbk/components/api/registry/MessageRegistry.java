@@ -1,4 +1,4 @@
-package net.vadamdev.dbk.interactive.api.registry;
+package net.vadamdev.dbk.components.api.registry;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.InteractionHook;
