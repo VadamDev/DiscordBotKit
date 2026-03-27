@@ -1,10 +1,10 @@
-package net.vadamdev.dbk.interactive.api;
+package net.vadamdev.dbk.components.api;
 
 import net.dv8tion.jda.api.JDA;
 
 /**
  * @author VadamDev
- * @since 08/11/2024
+ * @since 24/03/2026
  */
 public interface Invalidatable {
     void invalidate(JDA jda);

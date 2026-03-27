@@ -1,12 +1,14 @@
 package net.vadamdev.examplebot.commands;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.label.Label;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.text.TextInput;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.modals.Modal;
 import net.vadamdev.dbk.commands.GuildSlashCommand;
-import net.vadamdev.dbk.interactive.entities.modal.InteractiveModal;
+import net.vadamdev.dbk.components.entities.modal.SmartModal;
 
 import java.util.concurrent.TimeUnit;
 
@@ -22,12 +24,14 @@ public class ModalCommand extends GuildSlashCommand {
 
     @Override
     public void execute(Member sender, SlashCommandInteractionEvent event) {
-        final var modal = InteractiveModal.dynamic(event.getJDA(), "Just for testing !")
-                .addActionRow(TextInput.create("input", "Input", TextInputStyle.SHORT).build())
+        final Modal modal = SmartModal.builder("Just for testing!")
+                .addComponents(
+                        Label.of("Input", TextInput.create("input", TextInputStyle.SHORT).build())
+                )
                 .longevity(10, TimeUnit.SECONDS)
-                .action((e, closeable) -> {
+                .action((e, invalidatable) -> {
                     e.reply("Cool!").setEphemeral(true).queue();
-                }).build();
+                }).build(event.getJDA());
 
         event.replyModal(modal).queue();
     }

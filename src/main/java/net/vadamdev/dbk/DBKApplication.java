@@ -186,7 +186,7 @@ public final class DBKApplication {
         int started = 0, failed = 0;
 
         for(JDABot bot : bots) {
-            final String botName = bot.getClass().getSimpleName();
+            final String botName = bot.getClass().getName();
 
             logger.info("-> Starting " + botName + "...");
 

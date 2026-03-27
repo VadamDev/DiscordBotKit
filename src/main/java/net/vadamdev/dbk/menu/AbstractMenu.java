@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.requests.RestAction;
-import net.vadamdev.dbk.interactive.api.Invalidatable;
+import net.vadamdev.dbk.components.api.Invalidatable;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -22,8 +22,19 @@ public abstract class AbstractMenu implements Invalidatable {
     protected JDA jda;
 
     protected AbstractMenu(long timeout, @Nullable TimeUnit unit, @Nullable ScheduledExecutorService scheduler) {
-        if(unit != null && timeout > 0 && scheduler != null)
-            timeoutTask = scheduler.schedule(() -> invalidate(jda), timeout, unit);
+        if(unit == null || timeout <= 0 || scheduler == null)
+            return;
+
+        timeoutTask = scheduler.schedule(() -> {
+            if(jda == null)
+                return;
+
+            invalidate(jda);
+        }, timeout, unit);
+    }
+
+    protected AbstractMenu() {
+        this(0, null, null);
     }
 
     public abstract RestAction<Message> display(Message message);
@@ -61,7 +72,7 @@ public abstract class AbstractMenu implements Invalidatable {
             this.unit = null;
         }
 
-        public B setTimeout(long timeout, TimeUnit unit, ScheduledExecutorService scheduler) {
+        public B timeout(long timeout, TimeUnit unit, ScheduledExecutorService scheduler) {
             this.timeout = timeout;
             this.unit = unit;
             this.scheduler = scheduler;
