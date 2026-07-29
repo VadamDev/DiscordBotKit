@@ -16,9 +16,9 @@ import java.util.function.Consumer;
  * @author VadamDev
  * @since 17/03/2025
  */
-public record CachedMessage(long messageId, long channelId, long authorId, OffsetDateTime creationDate, JDA jda) {
+public record CachedMessage(String messageId, String channelId, String authorId, OffsetDateTime creationDate, JDA jda) {
     public CachedMessage(Message message) {
-        this(message.getIdLong(), message.getChannelIdLong(), message.getAuthor().getIdLong(), message.getTimeCreated(), message.getJDA());
+        this(message.getId(), message.getChannelId(), message.getAuthor().getId(), message.getTimeCreated(), message.getJDA());
     }
 
     public RestAction<Message> retrieveMessage() {

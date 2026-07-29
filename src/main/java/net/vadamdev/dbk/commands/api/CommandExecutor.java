@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Represents the most abstract command possible.
  * <p>If you don't want to use {@link SlashCommand SlashCommand} or {@link GuildSlashCommand GuildSlashCommand}
- * you can do your own implementation with this abstract class
+ * you can create your own implementation with this abstract class
  *
  * @author VadamDev
  * @since 03/11/2024

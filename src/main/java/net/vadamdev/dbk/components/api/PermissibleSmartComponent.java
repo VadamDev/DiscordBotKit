@@ -1,4 +1,4 @@
-package net.vadamdev.dbk.interactive.api.components;
+package net.vadamdev.dbk.components.api;
 
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -10,28 +10,29 @@ import java.util.function.Consumer;
 
 /**
  * @author VadamDev
- * @since 11/03/2025
+ * @since 20/03/2026
  */
-public interface PermissibleInteractiveComponent<T extends GenericInteractionCreateEvent> extends InteractiveComponent<T> {
+public interface PermissibleSmartComponent<T extends GenericInteractionCreateEvent> extends SmartComponent<T> {
     @Override
     default void execute(T event) {
         final Map<Permission, Consumer<T>> permissions = getRequiredPermissions();
 
-        if(event.isFromGuild() && (permissions != null && !permissions.isEmpty())) {
+        if(event.isFromGuild() && permissions != null && !permissions.isEmpty()) {
             final Member member = event.getMember();
 
             for(Map.Entry<Permission, Consumer<T>> entry : permissions.entrySet()) {
-                if(!member.hasPermission(entry.getKey())) {
-                    entry.getValue().accept(event);
-                    return;
-                }
+                if(member.hasPermission(entry.getKey()))
+                    continue;
+
+                entry.getValue().accept(event);
+                return;
             }
         }
 
-        executeWithRequiredPermissions(event);
+        executeWithPermission(event);
     }
 
-    void executeWithRequiredPermissions(T event);
+    void executeWithPermission(T event);
 
     @Nullable
     Map<Permission, Consumer<T>> getRequiredPermissions();

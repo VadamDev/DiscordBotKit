@@ -1,14 +1,14 @@
-package net.vadamdev.dbk.interactive.api.components;
+package net.vadamdev.dbk.components.api;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * A {@link InteractiveComponent} implementing this interface will be able to be automatically unregistered once his lifetime is superior to his longevity
+ * A {@link SmartComponent} implementing this interface will be able to be automatically unregistered once his lifetime is superior to his longevity
  *
  * @author VadamDev
- * @since 12/12/2024
+ * @since 20/03/2026
  */
-public interface Expirable {
+public interface IAutoExpirable extends Invalidatable {
     long DEFAULT_LONGEVITY = TimeUnit.MINUTES.toMillis(60); //1-hour lifetime by default, it can be modified by overriding getLongevity()
 
     /**

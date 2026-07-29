@@ -1,12 +1,14 @@
 package net.vadamdev.examplebot.commands;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.vadamdev.dbk.commands.GuildSlashCommand;
-import net.vadamdev.dbk.interactive.entities.SmartActionRow;
-import net.vadamdev.dbk.interactive.entities.buttons.InteractiveButton;
+import net.vadamdev.dbk.components.entities.SmartComponentDrawer;
+import net.vadamdev.dbk.components.entities.button.SmartButton;
 
 /**
  * @author VadamDev
@@ -20,15 +22,18 @@ public class ButtonCommand extends GuildSlashCommand {
 
     @Override
     public void execute(Member sender, SlashCommandInteractionEvent event) {
-        final SmartActionRow group = new SmartActionRow();
+        final SmartComponentDrawer drawer = new SmartComponentDrawer();
 
-        event.reply("Here's a test button:").setActionRow(
-                group.offer(InteractiveButton.of(ButtonStyle.SECONDARY)
+        final Button button = drawer.push(
+                SmartButton.builder(ButtonStyle.SECONDARY)
                         .label("Click Me!")
                         .action((e, closeable) -> {
                             e.reply("Hi!").setEphemeral(true).queue();
                         }).build()
-                )
-        ).queue(group::registerAllAndClear);
+        );
+
+        event.reply("Here's a test button:").addComponents(
+                ActionRow.of(button)
+        ).queue(drawer::registerAllAndClear);
     }
 }

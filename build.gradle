@@ -1,16 +1,16 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'com.gradleup.shadow' version '8.3.1'
+    id 'com.gradleup.shadow' version '9.4.1'
 }
 
 wrapper {
-    gradleVersion = "8.5"
+    gradleVersion = "9.4.1"
     distributionType = Wrapper.DistributionType.ALL
 }
 
 java {
-    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_25
 
     withSourcesJar()
     withJavadocJar()
@@ -19,11 +19,12 @@ java {
 compileJava.options.encoding = 'UTF-8'
 
 group = 'com.github.VadamDev'
-version = '1.1.2'
+version = '1.2.2'
 
 repositories {
     mavenCentral()
 
+    //Jitpack
     maven {
         url 'https://jitpack.io'
     }
@@ -35,19 +36,16 @@ dependencies {
         exclude module: 'opus-java'
         exclude module: 'tink'
     }
-    implementation "me.carleslc.Simple-YAML:Simple-Yaml:${simple_yaml_version}"
+    implementation "com.github.Carleslc:Simple-YAML:${simple_yaml_version}"
 
     compileOnly "org.jetbrains:annotations:${jetbrains_annotation_version}"
 
     //Test
     testImplementation "ch.qos.logback:logback-classic:${logback_version}"
-
-    testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.1"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.1"
 }
 
 test {
-    useJUnitPlatform()
+    failOnNoDiscoveredTests = false
 }
 
 publishing {
