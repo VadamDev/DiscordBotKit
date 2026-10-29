@@ -20,10 +20,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
+ * Core class of DBK, start and stop bots, initiate console commands, etc...
+ *
  * @author VadamDev
  * @since 05/11/2025
  */
 public final class DBKApplication {
+    /**
+     * Starts DBK for the given mainClass, and returns the DBKApplication instance. If logger is null, a default logger will be used.
+     *
+     * @param mainClass The main class of your program, where bots instances a present as static fields annotated with @Bot
+     * @param logger The logger to use for logging, if null a default logger will be used
+     * @return The created DBKApplication instance
+     */
     public static DBKApplication run(Class<?> mainClass, @Nullable Logger logger) {
         if(logger == null)
             logger = LoggerFactory.getLogger(DBKApplication.class);
@@ -55,14 +64,14 @@ public final class DBKApplication {
         this.launched = false;
     }
 
-    public void start() {
+    void start() {
         if(launched)
             throw new IllegalStateException("DBK Application is already running!");
 
-        //Header
+        // Log DBK Header
         logger.info(DBKConstants.HEADER);
 
-        //Load App Config
+        // Load App Config
         try {
             loadAppConfiguration();
         }catch (Exception e) {
@@ -70,7 +79,7 @@ public final class DBKApplication {
             System.exit(0);
         }
 
-        //Collect JDA Bots
+        // Collect JDA Bots from main class
         try {
             bots = collectJDABots();
         }catch (IllegalAccessException | IllegalArgumentException e) {
@@ -82,24 +91,29 @@ public final class DBKApplication {
             }
         }
 
-        //Executor
+        // Start mono thread scheduled executor
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
-        //Start Bots
+        // Actually start JDA Bots
         launched = true;
 
-        final boolean success = startBots();
+        final boolean success = startBots(); // return false if 0 bots started
         if(!success) {
+            scheduledExecutorService.shutdownNow();
             System.exit(0);
-            scheduledExecutorService.shutdown();
         }
 
-        //Console Command
+        // Start console commands manager
         consoleManager.start();
 
         logger.info("Loaded successfully! Type \"help\" to see a list of available commands.");
     }
 
+    /**
+     * Stops the application, shutting down all bots and the console command manager.
+     *
+     * @throws IllegalStateException If the application is not running
+     */
     public void stop() {
         if(!launched)
             throw new IllegalStateException("DBK Application is not running!");
@@ -129,6 +143,7 @@ public final class DBKApplication {
         final StringBuilder exitReasons = new StringBuilder();
 
         for(Field field : mainClass.getDeclaredFields()) {
+            // App config should be static
             if(!Modifier.isStatic(field.getModifiers()))
                 continue;
 
@@ -140,12 +155,14 @@ public final class DBKApplication {
             if(!(field.get(null) instanceof Configuration config))
                 throw new IllegalArgumentException("Field " + field.getName() + " is annotated with @AppConfig but is not of type Configuration!");
 
+            // Load app config
             final YamlFile yamlFile = config.getYamlFile();
             final boolean existedBefore = yamlFile.exists();
             ConfigurationLoader.loadConfiguration(config);
 
             logger.info("-> Loaded app configuration: " + yamlFile.getConfigurationFile().getName());
 
+            // If it's the first time the app is launched, and the app config is set to exit on first launch, we exit the app after loading the config
             if(!existedBefore && appConfig.shouldExitOnFirstLaunch()) {
                 exitReasons.append(appConfig.exitMessage() + "\n");
                 shouldExit = true;
@@ -169,6 +186,7 @@ public final class DBKApplication {
         final List<JDABot> result = new ArrayList<>();
 
         for(Field field : mainClass.getDeclaredFields()) {
+            // Bot field should be static and annotated with @Bot
             if(!Modifier.isStatic(field.getModifiers()) || !field.isAnnotationPresent(Bot.class))
                 continue;
 
@@ -224,11 +242,20 @@ public final class DBKApplication {
        Setters
      */
 
-    public void onShutdown(Callable action) {
+    /**
+     * Sets the action to be executed when DBK is shutting down. This can be called multiple times to add multiple actions.
+     * Note that the actions will be executed AFTER bots where shut down by DBK
+     *
+     * @param action The code to execute when DBK is shutting down
+     * @return The current DBKApplication instance
+     */
+    public DBKApplication onShutdown(Callable action) {
         if(onShutdown == null)
             onShutdown = action;
         else
             onShutdown = onShutdown.andThen(action);
+
+        return this;
     }
 
     /*
