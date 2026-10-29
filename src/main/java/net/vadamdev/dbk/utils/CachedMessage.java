@@ -21,6 +21,12 @@ public record CachedMessage(String messageId, String channelId, String authorId,
         this(message.getId(), message.getChannelId(), message.getAuthor().getId(), message.getTimeCreated(), message.getJDA());
     }
 
+    /**
+     * Retrieves the message from discord
+     *
+     * @throws IllegalArgumentException if the channel no longer exists
+     * @return a RestAction that will retrieve the message from discord
+     */
     public RestAction<Message> retrieveMessage() {
         final MessageChannel channel = getChannel();
         Checks.notNull(channel, "Channel no longer exists!");
@@ -28,6 +34,11 @@ public record CachedMessage(String messageId, String channelId, String authorId,
         return channel.retrieveMessageById(messageId);
     }
 
+    /**
+     * Deletes the message if it exists, otherwise does nothing
+     *
+     * @return a RestAction that will delete the message if it exists, otherwise does nothing
+     */
     public RestAction<Void> delete() {
         final MessageChannel channel = getChannel();
         if(channel == null)
@@ -36,11 +47,21 @@ public record CachedMessage(String messageId, String channelId, String authorId,
         return channel.deleteMessageById(messageId);
     }
 
+    /**
+     * Gets the channel of the message, or null if the channel no longer exists
+     *
+     * @return the channel of the message, or null if the channel no longer exists
+     */
     @Nullable
     public MessageChannel getChannel() {
         return jda.getChannelById(MessageChannel.class, channelId);
     }
 
+    /**
+     * Checks if the message still exists in the channel, or if it has been deleted
+     *
+     * @return a CompletableFuture that will complete with true if the message exists, or false if it has been deleted
+     */
     public CompletableFuture<Boolean> exists() {
         final MessageChannel channel = getChannel();
         if(channel == null)
@@ -51,6 +72,12 @@ public record CachedMessage(String messageId, String channelId, String authorId,
                 .exceptionally(throwable -> false);
     }
 
+    /**
+     * Runs the specified action if the message exists, otherwise runs the error action
+     *
+     * @param onSuccess the action to run if the message exists
+     * @param onError the action to run if the message does not exist
+     */
     public void runIfExists(Consumer<Message> onSuccess, Runnable onError) {
         final MessageChannel channel = getChannel();
         if(channel == null)
@@ -69,6 +96,11 @@ public record CachedMessage(String messageId, String channelId, String authorId,
                 });
     }
 
+    /**
+     * Runs the specified action if the message exists
+     *
+     * @param onSuccess the action to run if the message exists
+     */
     public void runIfExists(Consumer<Message> onSuccess) {
         runIfExists(onSuccess, () -> {});
     }

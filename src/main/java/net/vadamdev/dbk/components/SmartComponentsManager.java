@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -92,16 +93,27 @@ public class SmartComponentsManager extends ListenerAdapter {
     private void cleanup() {
         final int oldSize = allComponents.size();
 
-        //TODO: remove this retarded array duplication
         int removed = 0;
-        for(IAutoExpirable autoExpirable : new ArrayList<>(autoExpirables)) {
+
+        final Iterator<IAutoExpirable> it = autoExpirables.iterator();
+        while(it.hasNext()) {
+            final IAutoExpirable autoExpirable = it.next();
+
             if(!autoExpirable.canExpire())
                 continue;
 
             if(autoExpirable.getLifetimeMs() <= autoExpirable.getLongevity())
                 continue;
 
-            invalidate((SmartComponent<?>) autoExpirable);
+            final SmartComponent<?> component = (SmartComponent<?>) autoExpirable;
+
+            // Highly similar to invalidate method, but with iterator for safe removal during iteration
+            allComponents.remove(component);
+
+            if(component instanceof MessageAttachedComponent<?> comp)
+                messageAttachedComponents.remove(comp);
+
+            it.remove();
             removed++;
         }
 

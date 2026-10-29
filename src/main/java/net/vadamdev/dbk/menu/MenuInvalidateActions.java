@@ -5,6 +5,8 @@ import net.dv8tion.jda.api.entities.Message;
 import java.util.function.Consumer;
 
 /**
+ * Builtin actions for invalidating menus, such as deleting the message or disabling the components
+ *
  * @author VadamDev
  * @since 27/03/2026
  */

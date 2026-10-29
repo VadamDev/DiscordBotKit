@@ -1,6 +1,8 @@
 package net.vadamdev.dbk.utils;
 
 /**
+ * Runnable interface with chaining
+ *
  * @author VadamDev
  * @since 24/11/2025
  */

@@ -37,6 +37,10 @@ public abstract class AbstractMenu implements Invalidatable {
         this(0, null, null);
     }
 
+    /*
+      Display (open) methods
+     */
+
     public abstract RestAction<Message> display(Message message);
     public abstract RestAction<Message> display(MessageChannel channel, @Nullable String messageId);
     public RestAction<Message> display(MessageChannel channel) { return display(channel, null); }
@@ -47,6 +51,10 @@ public abstract class AbstractMenu implements Invalidatable {
     public abstract RestAction<Message> display(InteractionHook hook, boolean edit);
     public RestAction<Message> display(InteractionHook hook) { return display(hook, false); }
 
+    /**
+     * Cancels the timeout task if it exists and is not already canceled or done.
+     * This method is called automatically when the menu is invalidated.
+     */
     public void cancelTimeout() {
         if(timeoutTask == null)
             return;
@@ -55,6 +63,15 @@ public abstract class AbstractMenu implements Invalidatable {
             timeoutTask.cancel(false);
 
         timeoutTask = null;
+    }
+
+    /**
+     * Checks if the menu has a timeout task that is currently active.
+     *
+     * @return True if the menu has a timeout task that is not canceled or done
+     */
+    public boolean hasTimeout() {
+        return timeoutTask != null && !timeoutTask.isCancelled() && !timeoutTask.isDone();
     }
 
     @Override
@@ -70,6 +87,7 @@ public abstract class AbstractMenu implements Invalidatable {
         protected Builder() {
             this.timeout = -1;
             this.unit = null;
+            this.scheduler = null;
         }
 
         public B timeout(long timeout, TimeUnit unit, ScheduledExecutorService scheduler) {

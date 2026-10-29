@@ -1,7 +1,6 @@
 package net.vadamdev.dbk.menu;
 
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.components.ActionComponent;
 import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.actionrow.ActionRowChildComponent;
